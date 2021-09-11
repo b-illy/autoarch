@@ -1,8 +1,6 @@
 if [ "$EUID" != "0" ]; then
     echo "please run this script as root"
-    if [ "$1" != "--no-force-root" ]; then
-        exit
-    fi
+    exit
 fi
 
 
@@ -118,7 +116,7 @@ echo -e "\nList of connected storage devices:"
 lsblk -S
 echo -n "Choose a disk from this list to partition (e.g. sda or nvme0n1): "
 read dev
-devp=$dev # ensure partitions on nvme drives (nvme0np1 -> nvme0n1p1 vs sda -> sda1) are referred to correctly
+devp=$dev # ensure partitions on nvme drives (nvme0n1 -> nvme0n1p1 vs sda -> sda1) are referred to correctly
 if [[ $dev == nvme* ]]; then
     devp="${dev}p"
 fi
