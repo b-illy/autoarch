@@ -372,8 +372,8 @@ while [ true ]; do
     read vm
     if [ $vm = "1" ]; then
         pacstrap /mnt open-vm-tools
-        systemctl enable vmtoolsd
-        systemctl enable vmware-vmblock-fuse
+        arch-chroot /mnt systemctl enable vmtoolsd
+        arch-chroot /mnt systemctl enable vmware-vmblock-fuse
         break
     elif [ $vm = "2" ]; then
         break
