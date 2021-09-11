@@ -15,4 +15,4 @@ Alternatively, you can use this command to save a copy: (wget is not preinstalle
 
 `curl -o autoarch.sh https://raw.githubusercontent.com/b-illy/autoarch/main/autoarch.sh && zsh autoarch.sh`
 
-This script will only function properly on an archlinux live usb
+This script will only function properly on an [archlinux](https://archlinux.org/download/) live USB
