@@ -1,0 +1,2 @@
+# autoarch
+archlinux installation script
