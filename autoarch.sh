@@ -16,10 +16,10 @@ ls /sys/firmware/efi/efivars > /dev/null 2>&1
 
 if [ $? = 0 ]; then
     efi=true
-    echo -n "running in efi"
+    echo -n "Running in efi"
 else
     efi=false
-    echo -n "running in bios"
+    echo -n "Running in bios"
 fi
 
 echo " mode, if this was unexpected, check motherboard settings to make sure you boot in the correct mode"
@@ -31,16 +31,15 @@ ping archlinux.org -c 1 > /dev/null 2>&1
 if [ $? != 0 ]; then
     while [ true ]; do
         echo -e "\nInternet connection not working, will now configure..."
-        echo -n "using ethernet (1) or wifi (2)? "
+        echo -n "Using ethernet (1) or WiFi (2)? "
         read contype
-        if [ "$contype" = "1" ]; then
+        if [ "$contype" = "1" ]; then  # todo: try to fix common ethernet problems
             ip link | grep -q "^[0-9]: e[a-z]\{2\}[0-9]: <"
             if [ $? = 0 ]; then
                 echo "no ethernet device detected, try using wifi"
             else
                 echo "ethernet device detected, make sure you have an ethernet cable connecting your computer to a router with an internet connection, then re-run this script"
             fi
-            break
         elif [ "$contype" = "2" ]; then
             echo "set up a connection using iwctl, rough instructions: (use 'help' for more info)"
             echo -ne "station list\nstation *interface* scan\nstation *interface* list\nstation *interface* connect *ssid*\nstation *interface* show\n"
@@ -61,7 +60,7 @@ timedatectl set-ntp true
 
 # setup keyboard layout
 (
-    echo "All keyboard layouts. Find yours and remember the text between the last / and .map.gz"
+    echo "Showing all keyboard layouts. Find yours and remember the text between the last / and .map.gz"
     echo -e "Tip: use the up/down arrow keys to scroll and press q to exit this menu and continue\n"
     ls /usr/share/kbd/keymaps/**/*.map.gz
 ) | less
@@ -87,9 +86,14 @@ fi
 # show recommended partitions (no separate home partition)
 echo -e "\nSetting up partitions, recommended layout for you:"
 if [ $efi = "true" ]; then
+    echo "(gpt)"
     echo "efi partition (fat32) (512 MiB) (/mnt/boot) "
+else
+    echo "(mbr)"
 fi
-echo "swap partition (linux swap) ($swap GiB)"
+if [ $swap != 0 ]; then
+    echo "swap partition (linux swap) ($swap GiB)"
+fi
 echo "root fs (ext4) (all remaining free space on the disk) (/mnt)"
 
 
@@ -364,7 +368,7 @@ while [ true ]; do
 done
 
 
-# vm tools
+# open vm tools
 while [ true ]; do
     echo -n "Is this computer a VM guest (1) or a physical machine (2)? "
     read vm
@@ -383,7 +387,7 @@ done
 
 # finishing up
 echo "All done! You can now reboot your system"
-echo "You might first want to install some other packages e.g. drivers, fonts, applications"
+echo "You might first want to install some other packages e.g. drivers, fonts, partition manager, terminal emulator, alternative shell(s)"
 
 arch-chroot /mnt ping archlinux.org -c 1 > /dev/null 2>&1
 if [ $? != 0 ]; then
@@ -395,7 +399,7 @@ while [ true ]; do
     read reboot
     if [ $reboot = "1" ]; then
         reboot
-        break # lol
+        break  # lol
     elif [ $reboot = "2" ]; then
         break
     else
