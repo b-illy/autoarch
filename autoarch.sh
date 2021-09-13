@@ -211,7 +211,7 @@ fi
 # install core system + useful packages
 echo -ne "\nReady to install core packages, press enter to continue (will take a while)"
 read tmp
-pacstrap /mnt base linux linux-firmware amd-ucode intel-ucode iwd dhcpcd xorg git base-devel grub efibootmgr os-prober btrfs-progs dosfstools exfatprogs e2fsprogs ntfs-3g xfsprogs nano vim man-db man-pages texinfo
+pacstrap /mnt base linux linux-firmware iwd dhcpcd xorg git base-devel grub efibootmgr os-prober btrfs-progs dosfstools exfatprogs e2fsprogs ntfs-3g xfsprogs nano vim man-db man-pages texinfo
 pacman -Sy
 pacman -S git  # also install git locally to install yay later
 
@@ -249,6 +249,7 @@ echo "KEYMAP=${keymap}" > /mnt/etc/vconsole.conf
 
 
 # initramfs
+echo "Setting up initramfs..."
 arch-chroot /mnt mkinitcpio -P
 
 
@@ -385,8 +386,8 @@ done
 
 
 # finishing up
-echo "All done! You can now reboot your system"
-echo "You might first want to install some other packages e.g. drivers, fonts, partition manager, terminal emulator, alternative shell(s)"
+echo -e "\n\nAll done! You can now reboot your system"
+echo "You might first want to setup certain things e.g. CPU microcode patches (requires grub config remake), drivers, fonts"
 
 arch-chroot /mnt ping archlinux.org -c 1 > /dev/null 2>&1
 if [ $? != 0 ]; then
@@ -394,7 +395,7 @@ if [ $? != 0 ]; then
 fi
 
 while [ true ]; do
-    echo -n "Reboot now (1) or later manually (2) (using the 'reboot' command)? "
+    echo -n "Reboot now (1) or later manually (using the 'reboot' command) (2)? "
     read reboot
     if [ $reboot = "1" ]; then
         reboot
