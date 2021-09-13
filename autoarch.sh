@@ -221,9 +221,8 @@ genfstab -U /mnt >> /mnt/etc/fstab
 # setup timezone
 (
     echo "This is a list of all available timezones and the filepaths to them"
-    echo "Take note of the path (after /usr/share/zoneinfo/) for your timezone"
-    ls /mnt/usr/share/zoneinfo/*
-    ls /mnt/usr/share/zoneinfo/*/*
+    echo -e "Take note of the path (after /usr/share/zoneinfo/) for your timezone (e.g. Europe/London)\n"
+    ls /mnt/usr/share/zoneinfo/**/*
 ) | less
 
 echo -ne "\nInput path to desired timezone: /usr/share/zoneinfo/"
