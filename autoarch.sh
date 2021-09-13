@@ -385,9 +385,45 @@ while [ true ]; do
 done
 
 
+# fonts
+while [ true ]; do
+    echo -n "Would you like to install some commonly used fonts (1) or just use the preinstalled ones for now (2)? "
+    read fonts
+    if [ $fonts = "1" ]; then
+        pacstrap /mnt ttf-liberation ttf-droid gnu-free-fonts ttf-roboto noto-fonts ttf-ubuntu-font-family ttf-cascadia-code ttf-anonymous-pro ttf-hack ttf-jetbrains-mono
+        break
+    elif [ $fonts = "2" ]; then
+        break
+    else
+        echo "invalid input"
+    fi
+done
+
+
+# microcode
+while [ true ]; do
+    echo -e "\nCPU microcode patches:\n1) Intel\n2) AMD\n3) None"
+    echo -n "Choose an option from above: "
+    read ucode
+    if [ $ucode = "1" ]; then
+        pacstrap /mnt intel-ucode
+        arch-chroot /mnt grub-mkconfig -o /boot/grub/grub.cfg
+        break
+    elif [ $ucode = "2" ]; then
+        pacstrap /mnt amd-ucode
+        arch-chroot /mnt grub-mkconfig -o /boot/grub/grub.cfg
+        break
+    elif [ $ucode = "3" ]; then
+        break
+    else
+        echo "invalid input"
+    fi
+done
+
+
 # finishing up
 echo -e "\n\nAll done! You can now reboot your system"
-echo "You might first want to setup certain things e.g. CPU microcode patches (requires grub config remake), drivers, fonts"
+echo "You might want to setup a few things before rebooting e.g. CPU microcode patches (requires grub config remake), drivers, fonts"
 
 arch-chroot /mnt ping archlinux.org -c 1 > /dev/null 2>&1
 if [ $? != 0 ]; then
