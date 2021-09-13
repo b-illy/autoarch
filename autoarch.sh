@@ -211,7 +211,7 @@ fi
 # install core system + useful packages
 echo -ne "\nReady to install core packages, press enter to continue (will take a while)"
 read tmp
-pacstrap /mnt base linux linux-firmware amd-ucode intel-ucode iwd xorg git base-devel grub efibootmgr btrfs-progs dosfstools exfatprogs e2fsprogs ntfs-3g xfsprogs nano vim man-db man-pages texinfo
+pacstrap /mnt base linux linux-firmware amd-ucode intel-ucode iwd dhcpcd xorg git base-devel grub efibootmgr os-prober btrfs-progs dosfstools exfatprogs e2fsprogs ntfs-3g xfsprogs nano vim man-db man-pages texinfo
 pacman -Sy
 pacman -S git  # also install git locally to install yay later
 
@@ -286,11 +286,10 @@ read hostname
 echo $hostname > /mnt/etc/hostname
 echo "127.0.0.1 localhost" >> /mnt/etc/hosts
 echo "::1 localhost" >> /mnt/etc/hosts
-echo "127.0.1.1 ${hostname}.localdomain $hostname" >> /mnt/etc/hosts
 
 
 # setup sudo
-echo -e "\nSetting up sudo..."
+echo "Setting up sudo..."
 mv /mnt/etc/sudoers /mnt/etc/sudoers.bak
 echo "## setup by a script. see /etc/sudoers.bak for the default file." > /mnt/etc/sudoers
 echo "root ALL=(ALL) ALL" >> /mnt/etc/sudoers
@@ -299,7 +298,7 @@ echo "@includedir /etc/sudoers.d" >> /mnt/etc/sudoers
 
 
 # install yay
-echo -e "\nInstalling yay..."
+echo "Installing yay..."
 git clone https://aur.archlinux.org/yay-bin.git
 mv yay-bin /mnt/home/${username}/yay-bin
 arch-chroot /mnt chmod a+w /home/${username} /home/${username}/yay-bin # makepkg is dumb
@@ -345,7 +344,7 @@ done
 # browser
 while [ true ]; do
     echo -e "\nWeb browser:"
-    echo -e "1) Firefox\n2)Chromium\n3) qutebrowser\n4) Konqueror\n5) None"
+    echo -e "1) Firefox\n2) Chromium\n3) qutebrowser\n4) Konqueror\n5) None"
     echo -n "Choose a browser to install: "
     read browser
     if [ $browser = "1" ]; then
