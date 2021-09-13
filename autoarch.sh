@@ -250,7 +250,7 @@ echo "KEYMAP=${keymap}" > /mnt/etc/vconsole.conf
 
 
 # initramfs
-arch-chroot /tmp mkinitcpio -P
+arch-chroot /mnt mkinitcpio -P
 
 
 # grub install
@@ -287,9 +287,11 @@ read hostname
 echo $hostname > /mnt/etc/hostname
 echo "127.0.0.1 localhost" >> /mnt/etc/hosts
 echo "::1 localhost" >> /mnt/etc/hosts
+echo "127.0.1.1 ${hostname}.localdomain $hostname" >> /mnt/etc/hosts
 
 
 # setup sudo
+echo -e "\nSetting up sudo..."
 mv /mnt/etc/sudoers /mnt/etc/sudoers.bak
 echo "## setup by a script. see /etc/sudoers.bak for the default file." > /mnt/etc/sudoers
 echo "root ALL=(ALL) ALL" >> /mnt/etc/sudoers
@@ -298,6 +300,7 @@ echo "@includedir /etc/sudoers.d" >> /mnt/etc/sudoers
 
 
 # install yay
+echo -e "\nInstalling yay..."
 git clone https://aur.archlinux.org/yay-bin.git
 mv yay-bin /mnt/home/${username}/yay-bin
 arch-chroot /mnt chmod a+w /home/${username} /home/${username}/yay-bin # makepkg is dumb
