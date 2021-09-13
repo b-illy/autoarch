@@ -329,7 +329,7 @@ while [ true ]; do
         arch-chroot /mnt systemctl enable gdm
         break
     elif [ $de = "5" ]; then
-        pacstrap /mnt cinnamon xterm xed lightdm light-gtk-greeter
+        pacstrap /mnt cinnamon xterm xed lightdm lightdm-gtk-greeter
         arch-chroot /mnt systemctl enable lightdm
         break
     elif [ $de = "6" ]; then
