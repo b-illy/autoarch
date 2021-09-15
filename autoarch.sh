@@ -1,13 +1,15 @@
 if [ "$EUID" != "0" ]; then
-    echo "please run this script as root"
+    echo "ERROR: Must be ran as root user on an archlinux live USB"
     exit
 fi
 
 
 clear
-echo "autoarch shell script"
-echo "---------------------"
-echo ""
+echo "autoarch - archlinux installation script"
+echo "----------------------------------------"
+echo -ne "\nPress enter to start"
+read tmp
+
 
 # check if booted in efi or bios mode
 ls /sys/firmware/efi/efivars > /dev/null 2>&1
@@ -208,10 +210,36 @@ else
 fi
 
 
+# choose linux kernel version to use
+while [ true ]; do
+    echo -e "\nReady to install the core packages. Please select your preferred kernel:"
+    echo "1) Linux - most updated kernel version"
+    echo "2) Linux LTS - stable release, updated less often, may be good for old hardware support"
+    echo "3) Linux Hardened - security-focused branch"
+    echo "4) Linux Zen - optimised for performance"
+    echo -n "Your choice of kernel (1-4): "
+    read kernel_choice  # don't allow users to manually select package name because this could go very badly
+    if [ $kernel_choice = "1" ]; then
+        kernel="linux"
+        break
+    elif [ $kernel_choice = "2" ]; then
+        kernel="linux-lts"
+        break
+    elif [ $kernel_choice = "3" ]; then
+        kernel="linux-hardened"
+        break
+    elif [ $kernel_choice = "4" ]; then
+        kernel="linux-zen"
+        break
+    else
+        echo "invalid input"
+    fi
+done
+
+
 # install core system + useful packages
-echo -ne "\nReady to install core packages, press enter to continue (will take a while)"
-read tmp
-pacstrap /mnt base linux linux-firmware iwd dhcpcd xorg git base-devel grub efibootmgr os-prober btrfs-progs dosfstools exfatprogs e2fsprogs ntfs-3g xfsprogs nano vim man-db man-pages texinfo
+echo -e "\nNow installing core packages and setting up the system, this will likely take several minutes...\n"
+pacstrap /mnt base $kernel linux-firmware iwd dhcpcd xorg git base-devel grub efibootmgr os-prober btrfs-progs dosfstools exfatprogs e2fsprogs ntfs-3g xfsprogs nano vim man-db man-pages texinfo
 pacman -Sy
 pacman -S git  # also install git locally to install yay later
 
@@ -345,7 +373,7 @@ done
 # browser
 while [ true ]; do
     echo -e "\nWeb browser:"
-    echo -e "1) Firefox\n2) Chromium\n3) qutebrowser\n4) Konqueror\n5) None"
+    echo -e "1) Firefox\n2) Chromium\n3) qutebrowser\n4) Konqueror\n5) Vivaldi\n6) None"
     echo -n "Choose a browser to install: "
     read browser
     if [ $browser = "1" ]; then
@@ -361,6 +389,9 @@ while [ true ]; do
         pacstrap /mnt konqueror
         break
     elif [ $browser = "5" ]; then
+        pacstrap /mnt vivaldi
+        break
+    elif [ $browser = "6" ]; then
         break
     else
         echo "invalid input"
