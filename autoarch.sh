@@ -72,6 +72,8 @@ echo -ne "\nPlease enter a keyboard layout: "
 read keymap
 loadkeys "$keymap" > /dev/null 2>&1
 
+clear
+
 
 # determine a decent swap amount
 physmem=0
@@ -211,6 +213,8 @@ while [ true ]; do
         echo "invalid input"
     fi
 done
+
+clear
 
 
 # choose linux kernel version to use
