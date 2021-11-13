@@ -246,7 +246,7 @@ done
 
 # install core system + useful packages
 echo -e "Installing core packages and setting up the system, this will likely take several minutes...\n"
-pacstrap /mnt base $kernel linux-firmware iwd dhcpcd xorg git base-devel grub efibootmgr os-prober btrfs-progs dosfstools exfatprogs e2fsprogs ntfs-3g xfsprogs nano vim man-db man-pages texinfo --no-confirm
+pacstrap /mnt base $kernel linux-firmware iwd dhcpcd xorg git base-devel grub efibootmgr os-prober btrfs-progs dosfstools exfatprogs e2fsprogs ntfs-3g xfsprogs nano vim man-db man-pages texinfo --noconfirm
 pacman -Sy
 pacman -S git  # also install git to live environment to install yay later
 
