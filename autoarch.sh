@@ -249,9 +249,10 @@ clear
 # install core system + useful packages
 echo "Ready to install core packages and set up the system (will likely take several minutes)"
 echo -n "Press ENTER when you are ready"
+read tmp
 pacstrap /mnt base $kernel linux-firmware iwd dhcpcd xorg git base-devel grub efibootmgr os-prober btrfs-progs dosfstools exfatprogs e2fsprogs ntfs-3g xfsprogs nano vim man-db man-pages texinfo --noconfirm
 pacman -Sy
-pacman -S git  # also install git to live environment to install yay later
+pacman -S git --noconfirm  # also install git to live environment to install yay later
 
 echo "KEYMAP=${keymap}" > /mnt/etc/vconsole.conf  # save keymap across reboots on new system
 genfstab -U /mnt >> /mnt/etc/fstab  # generate fs table for partitions to actually get mounted
@@ -381,23 +382,23 @@ while [ true ]; do
     echo -n "Select one of the above options to install (enter number): "
     read choice
     if [ $choice = "1" ]; then
-        pacstrap /mnt sddm plasma ark dolphin dolphin-plugins gwenview kate konsole partitionmanager
+        pacstrap /mnt sddm plasma ark dolphin dolphin-plugins gwenview kate konsole partitionmanager --noconfirm
         arch-chroot /mnt systemctl enable sddm
         break
     elif [ $choice = "2" ]; then
-        pacstrap /mnt xfce4 xfce4-goodies lightdm lightdm-gtk-greeter
+        pacstrap /mnt xfce4 xfce4-goodies lightdm lightdm-gtk-greeter --noconfirm
         arch-chroot /mnt systemctl enable lightdm
         break
     elif [ $choice = "3" ]; then
-        pacstrap /mnt lxqt breeze-icons sddm xscreensaver xautolock xdg-utils
+        pacstrap /mnt lxqt breeze-icons sddm xscreensaver xautolock xdg-utils --noconfirm
         arch-chroot /mnt systemctl enable sddm
         break
     elif [ $choice = "4" ]; then
-        pacstrap /mnt gnome gnome-tweaks gnome-usage
+        pacstrap /mnt gnome gnome-tweaks gnome-usage --noconfirm
         arch-chroot /mnt systemctl enable gdm
         break
     elif [ $choice = "5" ]; then
-        pacstrap /mnt cinnamon xterm xed lightdm lightdm-gtk-greeter
+        pacstrap /mnt cinnamon xterm xed lightdm lightdm-gtk-greeter --noconfirm
         arch-chroot /mnt systemctl enable lightdm
         break
     elif [ $choice = "6" ]; then
@@ -417,16 +418,16 @@ while [ true ]; do
     echo -n "Choose a browser to install (enter number): "
     read choice
     if [ $choice = "1" ]; then
-        pacstrap /mnt firefox
+        pacstrap /mnt firefox --noconfirm
         break
     elif [ $choice = "2" ]; then
-        pacstrap /mnt chromium
+        pacstrap /mnt chromium --noconfirm
         break
     elif [ $choice = "3" ]; then
-        pacstrap /mnt qutebrowser
+        pacstrap /mnt qutebrowser --noconfirm
         break
     elif [ $choice = "4" ]; then
-        pacstrap /mnt vivaldi
+        pacstrap /mnt vivaldi --noconfirm
         break
     elif [ $choice = "5" ]; then
         break
@@ -439,12 +440,12 @@ clear
 
 
 # vmware
-if dmesg | grep -i "manufacturer: vmware"; then
+if dmesg | grep -i "manufacturer: vmware" > /dev/null 2>&1; then
     while [ true ]; do
         echo "VMware detected. Would you like to setup open-vm-tools (1=yes, 2=no)? "
         read choice
         if [ $choice = "1" ]; then
-            pacstrap /mnt open-vm-tools
+            pacstrap /mnt open-vm-tools --noconfirm
             arch-chroot /mnt systemctl enable vmtoolsd
             arch-chroot /mnt systemctl enable vmware-vmblock-fuse
             break
@@ -458,12 +459,12 @@ fi
 
 
 # virtualbox
-if dmesg | grep -i "manufacturer: virtualbox"; then
+if dmesg | grep -i "manufacturer: virtualbox" > /dev/null 2>&1; then
     while [ true ]; do
         echo -n "VirtualBox detected. Would you like to setup virtualbox-guest-utils (1=yes, 2=no)? "
         read choice
         if [ $choice = "1" ]; then
-            pacstrap /mnt virtualbox-guest-utils
+            pacstrap /mnt virtualbox-guest-utils --noconfirm
             break
         elif [ $choice = "2" ]; then
             break
@@ -481,7 +482,7 @@ while [ true ]; do
     echo -n "Would you like to install a large collection of fonts (enter 1) or just use the preinstalled ones for now (enter 2)? "
     read choice
     if [ $choice = "1" ]; then
-        pacstrap /mnt ttf-liberation ttf-droid gnu-free-fonts ttf-roboto noto-fonts ttf-ubuntu-font-family ttf-cascadia-code ttf-anonymous-pro ttf-hack ttf-jetbrains-mono
+        pacstrap /mnt ttf-liberation ttf-droid gnu-free-fonts ttf-roboto noto-fonts ttf-ubuntu-font-family ttf-cascadia-code ttf-anonymous-pro ttf-hack ttf-jetbrains-mono --noconfirm
         break
     elif [ $choice = "2" ]; then
         break
@@ -500,13 +501,13 @@ while [ true ]; do
     read choice
     if [ $choice = "1" ]; then
         echo "Installing Intel microcode patches..."
-        pacstrap /mnt intel-ucode
+        pacstrap /mnt intel-ucode --noconfirm
         echo "Reconfiguring GRUB to work correctly with these microcode patches..."
         arch-chroot /mnt grub-mkconfig -o /boot/grub/grub.cfg
         break
     elif [ $choice = "2" ]; then
         echo "Installing AMD microcode patches..."
-        pacstrap /mnt amd-ucode
+        pacstrap /mnt amd-ucode --noconfirm
         echo "Reconfiguring GRUB to work correctly with these microcode patches..."
         arch-chroot /mnt grub-mkconfig -o /boot/grub/grub.cfg
         break
@@ -523,9 +524,12 @@ clear
 # finishing up
 echo -e "All done!\nYou might want to setup a few things before rebooting, but should be good to reboot now"
 
-arch-chroot /mnt ping archlinux.org -c 1 > /dev/null 2>&1
+echo -e "\nChecking internet connection of new system..."
+arch-chroot /mnt ping 1.1.1.1 -c 1 > /dev/null 2>&1
 if [ $? != 0 ]; then
     echo "WARNING: no internet connection on the new install. Make sure to fix this!"
+else
+    echo "Seems to work"
 fi
 
 echo ""
