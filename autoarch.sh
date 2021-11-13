@@ -26,7 +26,8 @@ echo " mode, if this was unexpected, check motherboard settings to make sure you
 
 
 # check if there is already an internet connection
-ping archlinux.org -c 1 > /dev/null 2>&1
+echo "Checking internet connection..."
+ping 1.1.1.1 -c 1 > /dev/null 2>&1
 
 if [ $? != 0 ]; then
     while [ true ]; do
