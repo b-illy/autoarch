@@ -119,9 +119,9 @@ done
 
 
 # select device to partition
-echo -e "\nList of connected storage devices:"
+echo -e "\n\nList of connected storage devices:"
 lsblk -S
-echo -n "Choose a disk from this list to partition (e.g. sda or nvme0n1): "
+echo -n "Choose a disk from this list to partition (e.g. 'sda' or 'nvme0n1'): "
 read dev
 devp=$dev # ensure partitions on nvme drives (nvme0n1 -> nvme0n1p1 vs sda -> sda1) are referred to correctly
 if [[ $dev == nvme* ]]; then
@@ -155,7 +155,7 @@ while [ true ]; do
         done
         echo "Now that you have set up partitions, you will have to format and mount them"
         echo "Press alt + left/right arrow to switch between terminals"
-        echo -n "Press enter here when you have finished to continue"
+        echo -n "Press ENTER when you have finished to continue"
         read tmp
         
         break
@@ -243,9 +243,12 @@ while [ true ]; do
     fi
 done
 
+clear
+
 
 # install core system + useful packages
-echo -e "Installing core packages and setting up the system, this will likely take several minutes...\n"
+echo "Ready to install core packages and set up the system (will likely take several minutes)"
+echo -n "Press ENTER when you are ready"
 pacstrap /mnt base $kernel linux-firmware iwd dhcpcd xorg git base-devel grub efibootmgr os-prober btrfs-progs dosfstools exfatprogs e2fsprogs ntfs-3g xfsprogs nano vim man-db man-pages texinfo --noconfirm
 pacman -Sy
 pacman -S git  # also install git to live environment to install yay later
@@ -314,7 +317,7 @@ clear
 
 # grub config
 echo -e "\nYou will now have a chance to edit your GRUB config\nIf you are fine with the default, just exit nano with Ctrl-X"
-echo -n "Press enter when you are ready"
+echo -n "Press ENTER when you are ready"
 read tmp
 nano /mnt/etc/default/grub
 arch-chroot /mnt grub-mkconfig -o /boot/grub/grub.cfg
