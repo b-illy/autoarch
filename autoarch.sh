@@ -522,17 +522,7 @@ clear
 
 
 # finishing up
-echo -e "All done!\nYou might want to setup a few things before rebooting, but should be good to reboot now"
-
-echo -e "\nChecking internet connection of new system..."
-arch-chroot /mnt ping 1.1.1.1 -c 1 > /dev/null 2>&1
-if [ $? != 0 ]; then
-    echo "WARNING: no internet connection on the new install. Make sure to fix this!"
-else
-    echo "Seems to work"
-fi
-
-echo ""
+echo -e "All done!\nYou might want to setup a few things before rebooting, but should be good to reboot now\n"
 
 while [ true ]; do
     echo -n "Reboot now (enter 1) or later manually (using the 'reboot' command) (enter 2)? "
