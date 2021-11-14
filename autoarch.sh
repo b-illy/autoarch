@@ -250,7 +250,7 @@ clear
 echo "Ready to install core packages and set up the system (will likely take several minutes)"
 echo -n "Press ENTER when you are ready"
 read tmp
-pacstrap /mnt base $kernel linux-firmware iwd dhcpcd xorg git base-devel grub efibootmgr os-prober btrfs-progs dosfstools exfatprogs e2fsprogs ntfs-3g xfsprogs nano vim man-db man-pages texinfo --noconfirm
+pacstrap /mnt base $kernel linux-firmware networkmanager xorg neofetch git base-devel grub efibootmgr os-prober btrfs-progs dosfstools e2fsprogs ntfs-3g xfsprogs nano vim man-db man-pages texinfo --noconfirm
 pacman -Sy
 pacman -S git --noconfirm  # also install git to live environment to install yay later
 
