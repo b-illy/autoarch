@@ -12,9 +12,7 @@ read tmp
 echo ""
 
 # check if booted in efi or bios mode
-ls /sys/firmware/efi/efivars > /dev/null 2>&1
-
-if [ $? = 0 ]; then
+if ls /sys/firmware/efi/efivars > /dev/null 2>&1; then
     efi=true
     echo -n "Running in EFI"
 else
@@ -27,24 +25,22 @@ echo " mode, if this was unexpected, check motherboard settings to make sure you
 
 # check if there is already an internet connection
 echo -e "\nChecking internet connection..."
-ping 1.1.1.1 -c 1 > /dev/null 2>&1
-
-if [ $? != 0 ]; then
+if curl https://archlinux.org > /dev/null 2>&1; then
+    echo "Internet connection doesn't seem to be working, entering troubleshooting..."
     while [ true ]; do
-        echo "Internet connection doesn't seem to be working, will now configure..."
         echo -n "Are you trying to use ethernet (1) or WiFi (2)? "
         read choice
-        if [ $choice = "1" ]; then  # todo: try to fix common ethernet problems
-            ip link | grep -q "^[0-9]: e[a-z]\{2\}[0-9]: <"
-            if [ $? = 0 ]; then
-                echo "No ethernet device detected. Exiting autoarch for manual troubleshooting..."
-                exit
+        if [ $choice = "1" ]; then  # todo: look into common ethernet problems
+            if ip link | grep -q "^[0-9]: e[a-z]\{2\}[0-9]: <"; then
+                echo "No ethernet device detected."
             else
-                echo "Ethernet device detected but no connection. Exiting autoarch for manual troubleshooting..."
-                exit
+                echo "Ethernet device detected but no connection."
             fi
+            echo -n "Press ENTER to continue anyway or Ctrl-C to exit"
+            read tmp
+            break
         elif [ $choice = "2" ]; then
-            echo "set up a connection using iwctl, rough instructions: (use 'help' for more info or consult arch wiki)"
+            echo -e "Set up a connection using iwctl\nRough instructions: (also type 'help' and/or consult Arch wiki)"
             echo -ne "station list\nstation *interface* scan\nstation *interface* list\nstation *interface* connect *ssid*\nstation *interface* show\n"
             iwctl
             break
