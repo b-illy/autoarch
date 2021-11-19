@@ -26,6 +26,8 @@ echo " mode, if this was unexpected, check motherboard settings to make sure you
 # check if there is already an internet connection
 echo -e "\nChecking internet connection..."
 if curl https://archlinux.org > /dev/null 2>&1; then
+    echo -e "\nInternet connection working, continuing..."
+else
     echo "Internet connection doesn't seem to be working, entering troubleshooting..."
     while [ true ]; do
         echo -n "Are you trying to use ethernet (1) or WiFi (2)? "
@@ -48,8 +50,6 @@ if curl https://archlinux.org > /dev/null 2>&1; then
             echo "invalid input"
         fi
     done
-else
-    echo -e "\nInternet connection working, continuing..."
 fi
 
 # sync time
