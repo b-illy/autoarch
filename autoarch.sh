@@ -219,7 +219,7 @@ clear
 
 # choose linux kernel version to use
 while [ true ]; do
-    echo -e "\nReady to install the core packages. Please select your preferred kernel:"
+    echo -e "Ready to install the core packages. Please select your preferred kernel:"
     echo "1) Linux - most updated kernel version"
     echo "2) Linux LTS - stable release, updated less often, may be good for old hardware support"
     echo "3) Linux Hardened - security-focused branch"
@@ -256,6 +256,7 @@ pacman -S git --noconfirm  # also install git to live environment to install yay
 
 echo "KEYMAP=${keymap}" > /mnt/etc/vconsole.conf  # save keymap across reboots on new system
 genfstab -U /mnt >> /mnt/etc/fstab  # generate fs table for partitions to actually get mounted
+arch-chroot /mnt systemctl enable NetworkManager
 
 clear
 
@@ -306,7 +307,7 @@ clear
 
 
 # grub install
-echo -e "\nInstalling GRUB (bootloader)...\n"
+echo -e "Installing GRUB (bootloader)...\n"
 if [ $efi = "true" ]; then
     arch-chroot /mnt grub-install --target=x86_64-efi --efi-directory=/boot --bootloader-id=GRUB
 else
@@ -317,7 +318,7 @@ clear
 
 
 # grub config
-echo -e "\nYou will now have a chance to edit your GRUB config\nIf you are fine with the default, just exit nano with Ctrl-X"
+echo -e "You will now have a chance to edit your GRUB config\nIf you are fine with the default, just exit nano with Ctrl-X"
 echo -n "Press ENTER when you are ready"
 read tmp
 nano /mnt/etc/default/grub
