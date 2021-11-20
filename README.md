@@ -7,8 +7,8 @@ NOTE: When partitioning manually, the script still assumes some things about the
 
 This script is POSIX-compliant but works best with zsh (which is the default on the archiso anyway). For a one-line command to both download and run the script:
 
+`curl -O https://b-illy.github.io/autoarch/autoarch.sh && zsh autoarch.sh`
 
-`curl -o autoarch.sh https://raw.githubusercontent.com/b-illy/autoarch/main/autoarch.sh && zsh autoarch.sh`
-
+(or, alternatively, [click here](https://b-illy.github.io/autoarch/autoarch.sh) to download)
 
 Of course, this script will only function properly within an [Arch Linux](https://archlinux.org/download) live environment (booted from USB/CD/DVD).
