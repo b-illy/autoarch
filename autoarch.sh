@@ -1,3 +1,8 @@
+if [ "$EUID" != "0" ]; then
+    echo "ERROR: Must be ran as root user in an archlinux live environment"
+    exit
+fi
+
 autoload colors; colors  # allow coloured echo commands
 
 section() {  # function to easily print section titles
@@ -5,11 +10,6 @@ section() {  # function to easily print section titles
     clear
     echo -e "${1}${reset_color}\n--------------------------------------------------------\n"
 }
-
-if [ "$EUID" != "0" ]; then
-    echo "ERROR: Must be ran as root user in an archlinux live environment"
-    exit
-fi
 
 section "AutoArch - Arch Linux installation script"
 read "?Press ENTER to start"
@@ -27,8 +27,8 @@ fi
 
 echo " mode, if this was unexpected, check motherboard settings to make sure you boot in the correct mode"
 
-
 # check if there is already an internet connection
+section "Initial checks and setup"
 echo -e "\nChecking internet connection..."
 if curl https://archlinux.org > /dev/null 2>&1; then
     echo "Internet connection working, continuing..."
@@ -59,18 +59,25 @@ fi
 echo -e "\nSyncing system clock..."
 timedatectl set-ntp true
 
+# install git and dialog for the install process
+section "Initial checks and setup"
+echo -e "Installing some packages to be used in the install process...\n"
+pacman -Sy 
+pacman -S dialog git --noconfirm
+
+# dialog menu help
+infostr="For certain parts of the install process, you will be asked to select \
+a file from a dialog menu which looks a little like this one. To enter a directory \
+or select a file in one of these menus, press the space bar. Use the arrow keys to \
+navigate between options and, when you are finished, press ENTER."
+dialog --title "Dialog Menu Help" --msgbox "${infostr}" 20 50
 
 # setup keyboard layout
-(
-    echo "Showing all keyboard layouts. Find yours and remember the text between the last / and .map.gz"
-    echo -e "Tip: use the up/down arrow keys to scroll and press q to exit this menu and continue\n"
-    ls /usr/share/kbd/keymaps/**/*.map.gz
-) | less
-
-echo -ne "\nPlease enter a keyboard layout: "
-read keymap
+keymap=$(dialog --stdout --nocancel --title "Select a keyboard layout" --fselect /usr/share/kbd/keymaps/ 20 70)
 loadkeys "$keymap" > /dev/null 2>&1
 
+# setup timezone
+timezone=$(dialog --stdout --nocancel --title "Select a timezone" --fselect /usr/share/zoneinfo/ 20 70)
 
 # partitioning
 section "Partitioning"
@@ -230,26 +237,11 @@ echo "Ready to install core packages and set up the system (will likely take sev
 read "?Press ENTER when you are ready"
 # install packages
 pacstrap /mnt base $kernel linux-firmware networkmanager xorg neofetch git base-devel grub efibootmgr os-prober btrfs-progs dosfstools e2fsprogs ntfs-3g xfsprogs nano vim man-db man-pages texinfo --noconfirm
-pacman -Sy
-pacman -S git --noconfirm  # also install git to live environment to install yay later
 # other useful setup stuff
 echo "KEYMAP=${keymap}" > /mnt/etc/vconsole.conf  # save keymap across reboots on new system
 genfstab -U /mnt >> /mnt/etc/fstab  # generate fs table for partitions to actually get mounted
 arch-chroot /mnt systemctl enable NetworkManager
-
-
-# setup timezone
-clear
-
-(
-    echo "This is a list of all available timezones and the filepaths to them"
-    echo -e "Take note of the path (after /usr/share/zoneinfo/) for your timezone (e.g. Europe/London)\n"
-    ls /mnt/usr/share/zoneinfo/**/*
-) | less
-
-echo -ne "\nInput path to desired timezone: /usr/share/zoneinfo/"
-read timezone
-arch-chroot /mnt ln -sf /usr/share/zoneinfo/${timezone} /etc/localtime
+arch-chroot /mnt ln -sf ${timezone} /etc/localtime  # setup timezone
 arch-chroot /mnt hwclock --systohc
 
 
