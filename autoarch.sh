@@ -63,7 +63,7 @@ timedatectl set-ntp true
 section "Initial checks and setup"
 echo -e "Installing some packages to be used in the install process...\n"
 pacman -Sy 
-pacman -S dialog git --noconfirm
+pacman -S --noconfirm dialog git
 
 # dialog menu help
 infostr="For certain parts of the install process, you will be asked to select \
@@ -107,7 +107,7 @@ echo "root fs (ext4) (all remaining free space on the disk) (/mnt)"
 
 # chance to modify swap amount
 while [ true ]; do
-    read "?Would you like to change the swap amount (enter 1) or use the suggested amount (enter 2)? "
+    read "?Would you like to change the swap amount (1=yes, 2=no)? "
     if [ $REPLY = "1" ]; then
         echo -n "Input desired swap amount (in GiB): "
         read swap
@@ -135,22 +135,26 @@ while [ true ]; do
     read manualpart"?Would you like to partition manually (enter 1) or automatically (enter 2)? "
     if [ $manualpart = "1" ]; then
         # manual partitioning
-
         while [ true ]; do
             echo -e "\n1) parted (cli)\n2) fdisk (cli)\n3) cfdisk (ncurses gui)"
-            read "?Select a program to partition with (e.g. 1): "
-            if [ $REPLY = "1" ]; then
-                parted /dev/$dev
-                break
-            elif [ $REPLY = "2" ]; then
-                fdisk /dev/$dev
-                break
-            elif [ $REPLY = "3" ]; then
-                cfdisk /dev/$dev
-                break
-            else
-                echo "invalid input"
-            fi
+            read "?Select a program to partition with (enter a number): "
+            case $REPLY in
+                1)
+                    parted /dev/$dev
+                    break
+                    ;;
+                2)
+                    fdisk /dev/$dev
+                    break
+                    ;;
+                3)
+                    cfdisk /dev/$dev
+                    break
+                    ;;
+                *)
+                    echo "invalid input"
+                    ;;
+            esac
         done
         echo "Now that you have set up partitions, you will have to format and mount them"
         echo "Press alt + left/right arrow to switch between terminals"
@@ -213,21 +217,27 @@ while [ true ]; do
     echo "3) Linux Hardened - very security-focused branch, fewer features"
     echo "4) Linux Zen - optimised for performance"
     read "?Your choice of kernel (enter a number): "
-    if [ $REPLY = "1" ]; then
-        kernel="linux"
-        break
-    elif [ $REPLY = "2" ]; then
-        kernel="linux-lts"
-        break
-    elif [ $REPLY = "3" ]; then
-        kernel="linux-hardened"
-        break
-    elif [ $REPLY = "4" ]; then
-        kernel="linux-zen"
-        break
-    else
-        echo "invalid input"
-    fi
+    case $REPLY in
+        1)
+            kernel="linux"
+            break
+            ;;
+        2)
+            kernel="linux-lts"
+            break
+            ;;
+        3)
+            kernel="linux-hardened"
+            break
+            ;;
+        4)
+            kernel="linux-zen"
+            break
+            ;;
+        *)
+            echo "invalid input"
+            ;;
+    esac
 done
 
 
@@ -235,9 +245,19 @@ done
 section "Main system setup"
 echo "Ready to install core packages and set up the system (will likely take several minutes)"
 read "?Press ENTER when you are ready"
+
 # install packages
-pacstrap /mnt base $kernel linux-firmware networkmanager xorg neofetch git base-devel grub efibootmgr os-prober btrfs-progs dosfstools e2fsprogs ntfs-3g xfsprogs nano vim man-db man-pages texinfo --noconfirm
+pacstrap /mnt --noconfirm \
+    base $kernel linux-firmware xorg \  # base system packages
+    networkmanager network-manager-applet nm-connection-editor \  # networking
+    git base-devel \  # make tools
+    grub efibootmgr os-prober \  # grub stuff
+    btrfs-progs dosfstools e2fsprogs ntfs-3g xfsprogs \  # filesystem tools
+    nano vim \  # terminal text editors
+    man-db man-pages texinfo  # man pages
+
 # other useful setup stuff
+section "Main system setup"
 echo "KEYMAP=${keymap}" > /mnt/etc/vconsole.conf  # save keymap across reboots on new system
 genfstab -U /mnt >> /mnt/etc/fstab  # generate fs table for partitions to actually get mounted
 arch-chroot /mnt systemctl enable NetworkManager
@@ -252,6 +272,7 @@ echo "You will have to uncomment (removing the '#' at the start of the line) any
 echo "It is recommend to only use the UTF8 variants and also to include en_US.UTF8"
 echo "Remember your main locale's name (everything before the first space) as you will need it later"
 read "?Press ENTER when you are ready"
+
 nano /mnt/etc/locale.gen
 arch-chroot /mnt locale-gen
 
@@ -261,6 +282,7 @@ section "Locale setup"
 echo "LANG=en_US.UTF-8" > /mnt/etc/locale.conf
 echo "You will now have to replace en_US.UTF8 with your desired primary locale"
 read "?Press ENTER when you are ready"
+
 nano /mnt/etc/locale.conf
 
 
@@ -282,6 +304,7 @@ fi
 section "GRUB install and setup"
 echo -e "You will now have a chance to edit your GRUB config\nIf you are fine with the default, just exit nano with Ctrl-X"
 read "?Press ENTER when you are ready"
+
 nano /mnt/etc/default/grub
 arch-chroot /mnt grub-mkconfig -o /boot/grub/grub.cfg
 
@@ -301,9 +324,8 @@ arch-chroot /mnt passwd
 
 # choose hostname
 section "Setup machine hostname"
-echo -ne "\nChoose a hostname for your computer, such as '${username}-pc': "
-read hostname
-echo $hostname > /mnt/etc/hostname
+read "?Choose a hostname for your computer, such as '${username}-pc': "
+echo $REPLY > /mnt/etc/hostname
 echo "127.0.0.1 localhost" >> /mnt/etc/hosts
 echo "::1 localhost" >> /mnt/etc/hosts
 
@@ -330,34 +352,52 @@ arch-chroot /mnt chmod 755 /home/${username}  # set permissions back to somethin
 # desktop environment
 section "Desktop environment installation"
 while [ true ]; do
-    echo -e "1) KDE Plasma (recommended for beginners)\n2) Xfce4\n3) LXQt\n4) GNOME\n5) Cinnamon\n6) None / manual install"
+    echo -e "1) KDE Plasma\n2) Xfce4\n3) LXQt\n4) GNOME\n5) Cinnamon\n6) MATE\n7) Budgie\n8)None / manual install"
     echo "All installs will also include at least a display manager, filemanager and terminal emulator"
     read "?Select one of the above options to install (enter a number): "
-    if [ $REPLY = "1" ]; then
-        pacstrap /mnt sddm plasma ark dolphin dolphin-plugins gwenview kate konsole partitionmanager --noconfirm
-        arch-chroot /mnt systemctl enable sddm
-        break
-    elif [ $REPLY = "2" ]; then
-        pacstrap /mnt xfce4 xfce4-goodies lightdm lightdm-gtk-greeter --noconfirm
-        arch-chroot /mnt systemctl enable lightdm
-        break
-    elif [ $REPLY = "3" ]; then
-        pacstrap /mnt lxqt breeze-icons sddm xscreensaver xautolock xdg-utils --noconfirm
-        arch-chroot /mnt systemctl enable sddm
-        break
-    elif [ $REPLY = "4" ]; then
-        pacstrap /mnt gnome gnome-tweaks gnome-usage --noconfirm
-        arch-chroot /mnt systemctl enable gdm
-        break
-    elif [ $REPLY = "5" ]; then
-        pacstrap /mnt cinnamon xterm xed lightdm lightdm-gtk-greeter --noconfirm
-        arch-chroot /mnt systemctl enable lightdm
-        break
-    elif [ $REPLY = "6" ]; then
-        break
-    else
-        echo "invalid input"
-    fi
+    case $REPLY in
+        1)  # plasma
+            pacstrap /mnt --noconfirm sddm plasma ark dolphin dolphin-plugins gwenview kate konsole partitionmanager
+            arch-chroot /mnt systemctl enable sddm
+            break
+            ;;
+        2)  # xfce
+            pacstrap /mnt --noconfirm xfce4 xfce4-goodies lightdm lightdm-gtk-greeter
+            arch-chroot /mnt systemctl enable lightdm
+            break
+            ;;
+        3)  # lxqt
+            pacstrap /mnt --noconfirm lxqt breeze-icons sddm xscreensaver xautolock xdg-utils
+            arch-chroot /mnt systemctl enable sddm
+            break
+            ;;
+        4)  # gnome
+            pacstrap /mnt --noconfirm gnome gnome-tweaks gnome-usage
+            arch-chroot /mnt systemctl enable gdm
+            break
+            ;;
+        5)  # cinnamon
+            pacstrap /mnt --noconfirm cinnamon xterm xed lightdm lightdm-gtk-greeter
+            arch-chroot /mnt systemctl enable lightdm
+            break
+            ;;
+        6)  # mate
+            pacstrap /mnt --noconfirm mate mate-extra lightdm lightdm-gtk-greeter blueman
+            arch-chroot /mnt systemctl enable lightdm
+            break
+            ;;
+        7)  # budgie
+            pacstrap /mnt --noconfirm budgie-extras budgie-screensaver gnome-control-center budgie-desktop-view gedit gnome-terminal gdm
+            arch-chroot /mnt systemctl enable gdm
+            break
+            ;;
+        8)  # none
+            break
+            ;;
+        *)
+            echo "invalid input"
+            ;;
+    esac
 done
 
 
@@ -366,23 +406,30 @@ section "Web browser installation"
 while [ true ]; do
     echo -e "1) Firefox\n2) Chromium\n3) qutebrowser\n4) Vivaldi\n5) None / manual install"
     read "?Choose a browser to install (enter a number): "
-    if [ $REPLY = "1" ]; then
-        pacstrap /mnt firefox --noconfirm
-        break
-    elif [ $REPLY = "2" ]; then
-        pacstrap /mnt chromium --noconfirm
-        break
-    elif [ $REPLY = "3" ]; then
-        pacstrap /mnt qutebrowser --noconfirm
-        break
-    elif [ $REPLY = "4" ]; then
-        pacstrap /mnt vivaldi --noconfirm
-        break
-    elif [ $REPLY = "5" ]; then
-        break
-    else
-        echo "invalid input"
-    fi
+    case $REPLY in
+        1)
+            pacstrap /mnt --noconfirm firefox
+            break
+            ;;
+        2)
+            pacstrap /mnt --noconfirm chromium
+            break
+            ;;
+        3)
+            pacstrap /mnt --noconfirm qutebrowser
+            break
+            ;;
+        4)
+            pacstrap /mnt --noconfirm vivaldi
+            break
+            ;;
+        5)
+            break
+            ;;
+        *)
+            echo "invalid input"
+            ;;
+    esac
 done
 
 
@@ -394,7 +441,7 @@ if dmesg | grep -i "manufacturer: vmware" > /dev/null 2>&1; then
     while [ true ]; do
         read "?VMware detected. Would you like to setup open-vm-tools (1=yes, 2=no)? "
         if [ $REPLY = "1" ]; then
-            pacstrap /mnt open-vm-tools --noconfirm
+            pacstrap /mnt --noconfirm open-vm-tools
             arch-chroot /mnt systemctl enable vmtoolsd
             arch-chroot /mnt systemctl enable vmware-vmblock-fuse
             break
@@ -412,7 +459,7 @@ if dmesg | grep -i "manufacturer: virtualbox" > /dev/null 2>&1; then
     while [ true ]; do
         read "?VirtualBox detected. Would you like to setup virtualbox-guest-utils (1=yes, 2=no)? "
         if [ $REPLY = "1" ]; then
-            pacstrap /mnt virtualbox-guest-utils --noconfirm
+            pacstrap /mnt --noconfirm virtualbox-guest-utils
             break
         elif [ $REPLY = "2" ]; then
             break
@@ -428,7 +475,7 @@ section "Optional fonts"
 while [ true ]; do
     read "?Would you like to install a large collection of fonts (enter 1) or just use the preinstalled ones for now (enter 2)? "
     if [ $REPLY = "1" ]; then
-        pacstrap /mnt ttf-liberation ttf-droid gnu-free-fonts ttf-roboto noto-fonts ttf-ubuntu-font-family ttf-cascadia-code ttf-anonymous-pro ttf-hack ttf-jetbrains-mono --noconfirm
+        pacstrap /mnt --noconfirm ttf-liberation ttf-droid gnu-free-fonts ttf-roboto noto-fonts ttf-ubuntu-font-family ttf-cascadia-code ttf-anonymous-pro ttf-hack ttf-jetbrains-mono
         break
     elif [ $REPLY = "2" ]; then
         break
@@ -445,13 +492,13 @@ while [ true ]; do
     read "?Choose which CPU microcode patches to install (enter a number): "
     if [ $REPLY = "1" ]; then
         echo "Installing Intel microcode patches..."
-        pacstrap /mnt intel-ucode --noconfirm
+        pacstrap /mnt --noconfirm intel-ucode
         echo "Reconfiguring GRUB to work correctly with these microcode patches..."
         arch-chroot /mnt grub-mkconfig -o /boot/grub/grub.cfg
         break
     elif [ $REPLY = "2" ]; then
         echo "Installing AMD microcode patches..."
-        pacstrap /mnt amd-ucode --noconfirm
+        pacstrap /mnt --noconfirm amd-ucode
         echo "Reconfiguring GRUB to work correctly with these microcode patches..."
         arch-chroot /mnt grub-mkconfig -o /boot/grub/grub.cfg
         break
