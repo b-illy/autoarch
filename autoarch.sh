@@ -8,16 +8,15 @@ clear
 echo "AutoArch - Arch Linux installation script"
 echo "-----------------------------------------"
 echo -ne "\nPress ENTER to start"
-read tmp
-echo ""
+read
 
 # check if booted in efi or bios mode
 if ls /sys/firmware/efi/efivars > /dev/null 2>&1; then
     efi=true
-    echo -n "Running in EFI"
+    echo -ne "\nRunning in EFI"
 else
     efi=false
-    echo -n "Running in BIOS"
+    echo -ne "\nRunning in BIOS"
 fi
 
 echo " mode, if this was unexpected, check motherboard settings to make sure you boot in the correct mode"
@@ -30,18 +29,16 @@ if curl https://archlinux.org > /dev/null 2>&1; then
 else
     echo "Internet connection doesn't seem to be working, entering troubleshooting..."
     while [ true ]; do
-        echo -n "Are you trying to use ethernet (1) or WiFi (2)? "
-        read choice
-        if [ $choice = "1" ]; then  # todo: look into common ethernet problems
+        read "?Are you trying to use ethernet (enter 1) or WiFi (enter 2)? "
+        if [ $REPLY = "1" ]; then  # todo: look into common ethernet problems
             if ip link | grep -q "^[0-9]: e[a-z]\{2\}[0-9]: <"; then
                 echo "No ethernet device detected."
             else
                 echo "Ethernet device detected but no connection."
             fi
-            echo -n "Press ENTER to continue anyway or Ctrl-C to exit"
-            read tmp
+            read "?Press ENTER to continue anyway or Ctrl-C to exit"
             break
-        elif [ $choice = "2" ]; then
+        elif [ $REPLY = "2" ]; then
             echo -e "Set up a connection using iwctl\nRough instructions: (also type 'help' and/or consult Arch wiki)"
             echo -ne "station list\nstation *interface* scan\nstation *interface* list\nstation *interface* connect *ssid*\nstation *interface* show\n"
             iwctl
@@ -100,13 +97,12 @@ echo "root fs (ext4) (all remaining free space on the disk) (/mnt)"
 
 # chance to modify swap amount
 while [ true ]; do
-    echo -n "Would you like to change the swap amount (1) or use the suggested amount (2)? "
-    read choice
-    if [ $choice = "1" ]; then
+    read "?Would you like to change the swap amount (enter 1) or use the suggested amount (enter 2)? "
+    if [ $REPLY = "1" ]; then
         echo -n "Input desired swap amount (in GiB): "
         read swap
         break
-    elif [ $choice = "2" ]; then
+    elif [ $REPLY = "2" ]; then
         break
     else
         echo "invalid input"
@@ -117,8 +113,7 @@ done
 # select device to partition
 echo -e "\n\nList of connected storage devices:"
 lsblk -S
-echo -n "Choose a disk from this list to partition (e.g. 'sda' or 'nvme0n1'): "
-read dev
+read dev"?Choose a disk from this list to partition (e.g. 'sda' or 'nvme0n1'): "
 devp=$dev # ensure partitions on nvme drives (nvme0n1 -> nvme0n1p1 vs sda -> sda1) are referred to correctly
 if [[ $dev == nvme* ]]; then
     devp="${dev}p"
@@ -127,22 +122,20 @@ fi
 
 # select partition tool / method
 while [ true ]; do
-    echo -n "Would you like to partition manually (W.I.P) (1) or automatically (2)? "
-    read manualpart
+    read manualpart"?Would you like to partition manually (enter 1) or automatically (enter 2)? "
     if [ $manualpart = "1" ]; then
         # manual partitioning
 
         while [ true ]; do
             echo -e "\n1) parted (cli)\n2) fdisk (cli)\n3) cfdisk (ncurses gui)"
-            echo -n "Select a program to partition with (e.g. 1): "
-            read choice
-            if [ $choice = "1" ]; then
+            read "?Select a program to partition with (e.g. 1): "
+            if [ $REPLY = "1" ]; then
                 parted /dev/$dev
                 break
-            elif [ $choice = "2" ]; then
+            elif [ $REPLY = "2" ]; then
                 fdisk /dev/$dev
                 break
-            elif [ $choice = "3" ]; then
+            elif [ $REPLY = "3" ]; then
                 cfdisk /dev/$dev
                 break
             else
@@ -151,8 +144,7 @@ while [ true ]; do
         done
         echo "Now that you have set up partitions, you will have to format and mount them"
         echo "Press alt + left/right arrow to switch between terminals"
-        echo -n "Press ENTER when you have finished to continue"
-        read tmp
+        read "?Press ENTER when you have finished to continue"
         
         break
         
@@ -220,18 +212,17 @@ while [ true ]; do
     echo "2) Linux LTS - stable release, updated less often, may be good for old hardware support"
     echo "3) Linux Hardened - security-focused branch"
     echo "4) Linux Zen - optimised for performance"
-    echo -n "Your choice of kernel (1-4): "
-    read choice
-    if [ $choice = "1" ]; then
+    read "?Your choice of kernel (enter a number): "
+    if [ $REPLY = "1" ]; then
         kernel="linux"
         break
-    elif [ $choice = "2" ]; then
+    elif [ $REPLY = "2" ]; then
         kernel="linux-lts"
         break
-    elif [ $choice = "3" ]; then
+    elif [ $REPLY = "3" ]; then
         kernel="linux-hardened"
         break
-    elif [ $choice = "4" ]; then
+    elif [ $REPLY = "4" ]; then
         kernel="linux-zen"
         break
     else
@@ -244,8 +235,7 @@ clear
 
 # install core system + useful packages
 echo "Ready to install core packages and set up the system (will likely take several minutes)"
-echo -n "Press ENTER when you are ready"
-read tmp
+read "?Press ENTER when you are ready"
 pacstrap /mnt base $kernel linux-firmware networkmanager xorg neofetch git base-devel grub efibootmgr os-prober btrfs-progs dosfstools e2fsprogs ntfs-3g xfsprogs nano vim man-db man-pages texinfo --noconfirm
 pacman -Sy
 pacman -S git --noconfirm  # also install git to live environment to install yay later
@@ -277,8 +267,7 @@ echo "Setting up locale..."
 echo "You will have to uncomment (removing the '#' at the start of the line) any desired locales."
 echo "It is recommend to only use the UTF8 variants and also to include en_US.UTF8"
 echo "Remember your main locale's name (everything before the first space) as you will need it later"
-echo -n "Press ENTER when you are ready"
-read tmp
+read "?Press ENTER when you are ready"
 nano /mnt/etc/locale.gen
 arch-chroot /mnt locale-gen
     
@@ -288,8 +277,7 @@ clear
 # setup locale - choose main locale
 echo "LANG=en_US.UTF-8" > /mnt/etc/locale.conf
 echo "You will now have to replace en_US.UTF8 with your desired primary locale"
-echo -n "Press ENTER when you are ready"
-read tmp
+read "?Press ENTER when you are ready"
 nano /mnt/etc/locale.conf
 
 clear
@@ -315,8 +303,7 @@ clear
 
 # grub config
 echo -e "You will now have a chance to edit your GRUB config\nIf you are fine with the default, just exit nano with Ctrl-X"
-echo -n "Press ENTER when you are ready"
-read tmp
+read "?Press ENTER when you are ready"
 nano /mnt/etc/default/grub
 arch-chroot /mnt grub-mkconfig -o /boot/grub/grub.cfg
 
@@ -376,29 +363,28 @@ while [ true ]; do
     echo "Desktop environment:"
     echo -e "1) KDE Plasma (recommended for beginners)\n2) Xfce4\n3) LXQt\n4) GNOME\n5) Cinnamon\n6) None / manual install"
     echo "All installs will also include at least a display manager, filemanager and terminal emulator"
-    echo -n "Select one of the above options to install (enter number): "
-    read choice
-    if [ $choice = "1" ]; then
+    read "?Select one of the above options to install (enter a number): "
+    if [ $REPLY = "1" ]; then
         pacstrap /mnt sddm plasma ark dolphin dolphin-plugins gwenview kate konsole partitionmanager --noconfirm
         arch-chroot /mnt systemctl enable sddm
         break
-    elif [ $choice = "2" ]; then
+    elif [ $REPLY = "2" ]; then
         pacstrap /mnt xfce4 xfce4-goodies lightdm lightdm-gtk-greeter --noconfirm
         arch-chroot /mnt systemctl enable lightdm
         break
-    elif [ $choice = "3" ]; then
+    elif [ $REPLY = "3" ]; then
         pacstrap /mnt lxqt breeze-icons sddm xscreensaver xautolock xdg-utils --noconfirm
         arch-chroot /mnt systemctl enable sddm
         break
-    elif [ $choice = "4" ]; then
+    elif [ $REPLY = "4" ]; then
         pacstrap /mnt gnome gnome-tweaks gnome-usage --noconfirm
         arch-chroot /mnt systemctl enable gdm
         break
-    elif [ $choice = "5" ]; then
+    elif [ $REPLY = "5" ]; then
         pacstrap /mnt cinnamon xterm xed lightdm lightdm-gtk-greeter --noconfirm
         arch-chroot /mnt systemctl enable lightdm
         break
-    elif [ $choice = "6" ]; then
+    elif [ $REPLY = "6" ]; then
         break
     else
         echo "invalid input"
@@ -412,21 +398,20 @@ clear
 while [ true ]; do
     echo -e "\nWeb browser:"
     echo -e "1) Firefox\n2) Chromium\n3) qutebrowser\n4) Vivaldi\n5) None / manual install"
-    echo -n "Choose a browser to install (enter number): "
-    read choice
-    if [ $choice = "1" ]; then
+    read "?Choose a browser to install (enter a number): "
+    if [ $REPLY = "1" ]; then
         pacstrap /mnt firefox --noconfirm
         break
-    elif [ $choice = "2" ]; then
+    elif [ $REPLY = "2" ]; then
         pacstrap /mnt chromium --noconfirm
         break
-    elif [ $choice = "3" ]; then
+    elif [ $REPLY = "3" ]; then
         pacstrap /mnt qutebrowser --noconfirm
         break
-    elif [ $choice = "4" ]; then
+    elif [ $REPLY = "4" ]; then
         pacstrap /mnt vivaldi --noconfirm
         break
-    elif [ $choice = "5" ]; then
+    elif [ $REPLY = "5" ]; then
         break
     else
         echo "invalid input"
@@ -439,14 +424,13 @@ clear
 # vmware
 if dmesg | grep -i "manufacturer: vmware" > /dev/null 2>&1; then
     while [ true ]; do
-        echo "VMware detected. Would you like to setup open-vm-tools (1=yes, 2=no)? "
-        read choice
-        if [ $choice = "1" ]; then
+        read "?VMware detected. Would you like to setup open-vm-tools (1=yes, 2=no)? "
+        if [ $REPLY = "1" ]; then
             pacstrap /mnt open-vm-tools --noconfirm
             arch-chroot /mnt systemctl enable vmtoolsd
             arch-chroot /mnt systemctl enable vmware-vmblock-fuse
             break
-        elif [ $choice = "2" ]; then
+        elif [ $REPLY = "2" ]; then
             break
         else
             echo "invalid input"
@@ -458,12 +442,11 @@ fi
 # virtualbox
 if dmesg | grep -i "manufacturer: virtualbox" > /dev/null 2>&1; then
     while [ true ]; do
-        echo -n "VirtualBox detected. Would you like to setup virtualbox-guest-utils (1=yes, 2=no)? "
-        read choice
-        if [ $choice = "1" ]; then
+        read "?VirtualBox detected. Would you like to setup virtualbox-guest-utils (1=yes, 2=no)? "
+        if [ $REPLY = "1" ]; then
             pacstrap /mnt virtualbox-guest-utils --noconfirm
             break
-        elif [ $choice = "2" ]; then
+        elif [ $REPLY = "2" ]; then
             break
         else
             echo "invalid input"
@@ -476,12 +459,11 @@ clear
 
 # fonts
 while [ true ]; do
-    echo -n "Would you like to install a large collection of fonts (enter 1) or just use the preinstalled ones for now (enter 2)? "
-    read choice
-    if [ $choice = "1" ]; then
+    read "?Would you like to install a large collection of fonts (enter 1) or just use the preinstalled ones for now (enter 2)? "
+    if [ $REPLY = "1" ]; then
         pacstrap /mnt ttf-liberation ttf-droid gnu-free-fonts ttf-roboto noto-fonts ttf-ubuntu-font-family ttf-cascadia-code ttf-anonymous-pro ttf-hack ttf-jetbrains-mono --noconfirm
         break
-    elif [ $choice = "2" ]; then
+    elif [ $REPLY = "2" ]; then
         break
     else
         echo "invalid input"
@@ -494,21 +476,20 @@ clear
 # microcode
 while [ true ]; do
     echo -e "CPU microcode patches:\n1) Intel\n2) AMD\n3) None"
-    echo -n "Choose which CPU microcode patches to install (enter a number): "
-    read choice
-    if [ $choice = "1" ]; then
+    read "?Choose which CPU microcode patches to install (enter a number): "
+    if [ $REPLY = "1" ]; then
         echo "Installing Intel microcode patches..."
         pacstrap /mnt intel-ucode --noconfirm
         echo "Reconfiguring GRUB to work correctly with these microcode patches..."
         arch-chroot /mnt grub-mkconfig -o /boot/grub/grub.cfg
         break
-    elif [ $choice = "2" ]; then
+    elif [ $REPLY = "2" ]; then
         echo "Installing AMD microcode patches..."
         pacstrap /mnt amd-ucode --noconfirm
         echo "Reconfiguring GRUB to work correctly with these microcode patches..."
         arch-chroot /mnt grub-mkconfig -o /boot/grub/grub.cfg
         break
-    elif [ $choice = "3" ]; then
+    elif [ $REPLY = "3" ]; then
         break
     else
         echo "invalid input"
@@ -519,15 +500,14 @@ clear
 
 
 # finishing up
-echo -e "All done!\nYou might want to setup a few things before rebooting, but should be good to reboot now\n"
+echo -e "All done!\nYou should be good to reboot now\n"
 
 while [ true ]; do
-    echo -n "Reboot now (enter 1) or later manually (using the 'reboot' command) (enter 2)? "
-    read choice
-    if [ $choice = "1" ]; then
+    read "?Reboot now (enter 1) or later manually (using the 'reboot' command) (enter 2)? "
+    if [ $REPLY = "1" ]; then
         reboot
         break
-    elif [ $choice = "2" ]; then
+    elif [ $REPLY = "2" ]; then
         exit
         break
     else
