@@ -1,10 +1,9 @@
 autoload colors; colors  # allow coloured echo commands
 
 section() {  # function to easily print section titles
+    echo $fg_bold[cyan]
     clear
-    echo $fg_bold[cyan] $1
-    echo ${reset_color} "-----------------------------------------------------"
-    echo
+    echo -e "${1}${reset_color}\n--------------------------------------------------------\n"
 }
 
 if [ "$EUID" != "0" ]; then
