@@ -333,7 +333,7 @@ mv yay-bin /mnt/home/${username}/yay-bin
 arch-chroot /mnt chmod a+w /home/${username} /home/${username}/yay-bin  # makepkg needs specific perms
 arch-chroot /mnt sudo -u $username bash -c "cd /home/${username}/yay-bin && makepkg -si"
 rm -rf /mnt/home/${username}/yay-bin
-arch-chroot /mnt chmod 774 /home/${username}  # make sure perms are alright
+arch-chroot /mnt chmod 755 /home/${username}  # set permissions back to something more reasonable
 
 
 # desktop environment
