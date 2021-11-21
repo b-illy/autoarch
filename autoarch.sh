@@ -248,19 +248,12 @@ read "?Press ENTER when you are ready"
 
 # install packages
 pacstrap /mnt --noconfirm \
-    # base system packages
     base $kernel linux-firmware xorg \
-    # networking
     networkmanager network-manager-applet nm-connection-editor \
-    # make tools
     git base-devel \
-    # grub stuff
     grub efibootmgr os-prober \
-    # filesystem tools
     btrfs-progs dosfstools e2fsprogs ntfs-3g xfsprogs \
-    # terminal text editors
     nano vim \
-    # man pages
     man-db man-pages texinfo
 
 # other useful setup stuff
