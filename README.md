@@ -11,4 +11,4 @@ This script is designed only for use with zsh (installed on the archiso already)
 
 (or, alternatively, [click here](https://b-illy.github.io/autoarch/autoarch.sh) to download)
 
-Of course, this script will only function properly within an [Arch Linux](https://archlinux.org/download) live environment (booted from USB/CD/DVD).
+Of course, this script will only function properly within an [Arch Linux](https://archlinux.org/download) live environment (booted from USB/CD/DVD). Make sure to use the latest image (or at least something relatively recent) to avoid errors.
