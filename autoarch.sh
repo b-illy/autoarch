@@ -157,7 +157,7 @@ while [ true ]; do
             esac
         done
         echo "Now that you have set up partitions, you will have to format and mount them"
-        echo "Press alt + left/right arrow to switch between terminals"
+        echo "Press alt + left/right arrow to switch between ttys"
         read "?Press ENTER when you have finished to continue"
         break
     elif [ $manualpart = "2" ]; then
@@ -352,7 +352,7 @@ arch-chroot /mnt chmod 755 /home/${username}  # set permissions back to somethin
 # desktop environment
 section "Desktop environment installation"
 while [ true ]; do
-    echo -e "1) KDE Plasma\n2) Xfce4\n3) LXQt\n4) GNOME\n5) Cinnamon\n6) MATE\n7) Budgie\n8)None / manual install"
+    echo -e "1) KDE Plasma\n2) Xfce4\n3) LXQt\n4) GNOME\n5) Cinnamon\n6) MATE\n7) Budgie\n8) None / manual install"
     echo "All installs will also include at least a display manager, filemanager and terminal emulator"
     read "?Select one of the above options to install (enter a number): "
     case $REPLY in
