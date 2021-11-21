@@ -5,7 +5,7 @@ NOTE: When partitioning manually, the script still assumes some things about the
 
 ## Usage
 
-This script is POSIX-compliant but works best with zsh (which is the default on the archiso anyway). For a one-line command to both download and run the script:
+This script is designed only for use with zsh (installed on the archiso already). For a one-line command to both download and run the script:
 
 `curl -O https://b-illy.github.io/autoarch/autoarch.sh && zsh autoarch.sh`
 
