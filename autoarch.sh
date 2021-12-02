@@ -313,14 +313,31 @@ echo "%wheel ALL=(ALL) ALL" >> /mnt/etc/sudoers
 echo "@includedir /etc/sudoers.d" >> /mnt/etc/sudoers
 
 
-# install yay
-section "Yay (AUR helper) installation"
-git clone https://aur.archlinux.org/yay-bin.git
-mv yay-bin /mnt/home/${username}/yay-bin
-arch-chroot /mnt chmod a+w /home/${username} /home/${username}/yay-bin  # makepkg needs specific perms
-arch-chroot /mnt sudo -u $username bash -c "cd /home/${username}/yay-bin && makepkg -si"
-rm -rf /mnt/home/${username}/yay-bin
-arch-chroot /mnt chmod 755 /home/${username}  # set permissions back to something more reasonable
+# aur helper
+REPLY=$(dialog --stdout --nocancel --menu "Choose an AUR helper" --backtitle "AUR helper installation" 20 40 20 \
+1 "yay" 2 "paru" 3 "aura" 4 "None")
+section "AUR helper installation"
+case $REPLY in
+    1)
+        pkg="yay-bin"
+        ;;
+    2)
+        pkg="paru-bin"
+        ;;
+    3)
+        pkg="aura-bin"
+        ;;
+esac
+
+if [[ $REPLY -ne 4 ]]; then
+    # install pkg from aur manually
+    git clone https://aur.archlinux.org/${pkg}.git
+    mv ${pkg} /mnt/home/${username}/${pkg}
+    arch-chroot /mnt chmod a+w /home/${username} /home/${username}/${pkg}  # makepkg needs specific perms
+    arch-chroot /mnt sudo -u $username bash -c "cd /home/${username}/${pkg} && makepkg -si"
+    rm -rf /mnt/home/${username}/${pkg}
+    arch-chroot /mnt chmod 755 /home/${username}  # set permissions back to something more reasonable
+fi
 
 
 # desktop environment
