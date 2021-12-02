@@ -170,6 +170,7 @@ if dialog --backtitle "Partitioning" --yesno "Would you like this script to auto
         fi
         mkdir -p /mnt/boot
         mount /dev/${devp}1 /mnt/boot
+    fi
 else
     # manual partitioning
     REPLY=$(dialog --stdout --nocancel --menu "Choose a program to partition with" --backtitle "Partitioning" 20 40 20 \
