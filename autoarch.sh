@@ -173,7 +173,7 @@ if dialog --backtitle "Partitioning" --yesno "Would you like this script to auto
     fi
 else
     # manual partitioning
-    REPLY=$(dialog --stdout --nocancel --menu "Choose a program to partition with" --backtitle "Partitioning" 20 40 20 \
+    REPLY=$(dialog --stdout --nocancel --backtitle "Partitioning" --menu "Choose a program to partition with" 20 40 20 \
     1 "parted (cli)" 2 "fdisk (cli)" 3 "cfdisk (ncurses gui)")  
     case $REPLY in
         1)
@@ -197,7 +197,7 @@ fi
 
 
 # choose linux kernel version to use
-REPLY=$(dialog --stdout --nocancel --menu "Select your preferred kernel" --backtitle "Main system setup" 20 80 20 \
+REPLY=$(dialog --stdout --nocancel --backtitle "Main system setup" --menu "Select your preferred kernel" 20 80 20 \
 1 "Linux - most updated kernel version"
 2 "Linux LTS - stable release, updated less often"
 3 "Linux Hardened - very security-focused branch, fewer features"
@@ -299,7 +299,7 @@ arch-chroot /mnt passwd
 
 
 # choose hostname
-echo $(dialog --stdout --nocancel --backtitle "Hostname setup" --inputbox "Choose a hostname for your computer (such as '${username}-pc')") > /mnt/etc/hostname
+echo $(dialog --stdout --nocancel --backtitle "Hostname setup" --inputbox "Choose a hostname for your computer (such as '${username}-pc')" 10 60) > /mnt/etc/hostname
 echo "127.0.0.1 localhost" >> /mnt/etc/hosts
 echo "::1 localhost" >> /mnt/etc/hosts
 
@@ -314,7 +314,7 @@ echo "@includedir /etc/sudoers.d" >> /mnt/etc/sudoers
 
 
 # aur helper
-REPLY=$(dialog --stdout --nocancel --menu "Choose an AUR helper" --backtitle "AUR helper installation" 20 40 20 \
+REPLY=$(dialog --stdout --nocancel --backtitle "AUR helper installation" --menu "Choose an AUR helper" 20 40 20 \
 1 "yay" 2 "paru" 3 "aura" 4 "None")
 section "AUR helper installation"
 case $REPLY in
@@ -341,7 +341,7 @@ fi
 
 
 # desktop environment
-REPLY=$(dialog --stdout --nocancel --menu "Choose a desktop environment" --backtitle "Desktop environment installation" 20 40 20 \
+REPLY=$(dialog --stdout --nocancel --backtitle "Desktop environment installation" --menu "Choose a desktop environment" 20 40 20 \
 1 "KDE Plasma" 2 "xfce4" 3 "LXQt" 4 "GNOME" 5 "Cinnamon" 6 "MATE" 7 "Budgie" 8 "None")
 section "Desktop environment installation"
 case $REPLY in
@@ -377,7 +377,7 @@ esac
 
 
 # browser
-REPLY=$(dialog --stdout --nocancel --menu "Choose a browser to install" --backtitle "Web browser installation" 20 40 20 \
+REPLY=$(dialog --stdout --nocancel --backtitle "Web browser installation" --menu "Choose a browser to install" 20 40 20 \
 1 "Firefox" 2 "Chromium" 3 "qutebrowser" 4 "Vivaldi" 5 "None")
 section "Web browser installation"
 case $REPLY in
@@ -422,7 +422,7 @@ fi
 
 
 # microcode
-REPLY=$(dialog --stdout --nocancel --menu "Choose which CPU microcode patches to install" --backtitle "CPU microcode patches" 20 40 20 \
+REPLY=$(dialog --stdout --nocancel --backtitle "CPU microcode patches" --menu "Choose which CPU microcode patches to install" 20 40 20 \
 1 "Intel" 2 "AMD" 3 "None")
 section "CPU microcode patches"
 case $REPLY in
