@@ -62,8 +62,7 @@ timedatectl set-ntp true
 # install git and dialog for the install process
 section "Initial checks and setup"
 echo -e "Installing some packages to be used in the install process...\n"
-pacman -Sy 
-pacman -S --noconfirm dialog git
+pacman -Sy --noconfirm dialog git
 
 # dialog menu help
 infostr="For certain parts of the install process, you will be asked to select \
@@ -349,7 +348,6 @@ arch-chroot /mnt chmod 755 /home/${username}  # set permissions back to somethin
 
 
 # desktop environment
-section "Desktop environment installation"
 while [ true ]; do
     REPLY=$(dialog --stdout --nocancel --menu "Choose a desktop environment" --backtitle "Desktop environment installation" 20 40 20 \
     1 "KDE Plasma" 2 "xfce4" 3 "LXQt" 4 "GNOME" 5 "Cinnamon" 6 "MATE" 7 "Budgie" 8 "None")
@@ -401,7 +399,6 @@ done
 
 
 # browser
-section "Web browser installation"
 while [ true ]; do
     REPLY=$(dialog --stdout --nocancel --menu "Choose a browser to install" --backtitle "Web browser installation" 20 40 20 \
     1 "Firefox" 2 "Chromium" 3 "qutebrowser" 4 "Vivaldi" 5 "None")
@@ -434,55 +431,25 @@ done
 
 
 # vm guest stuff
-section "VM guest tools setup"
-
-# vmware
 if dmesg | grep -i "manufacturer: vmware" > /dev/null 2>&1; then
-    while [ true ]; do
-        read "?VMware detected. Would you like to setup open-vm-tools (1=yes, 2=no)? "
-        if [ $REPLY = "1" ]; then
-            pacstrap /mnt --noconfirm open-vm-tools
-            arch-chroot /mnt systemctl enable vmtoolsd
-            arch-chroot /mnt systemctl enable vmware-vmblock-fuse
-            break
-        elif [ $REPLY = "2" ]; then
-            break
-        else
-            echo "invalid input"
-        fi
-    done
+    if dialog --backtitle "VM Guest Tools" --yesno "VMware detected. Would you like to setup open-vm-tools?" 10 60; then
+        pacstrap /mnt --noconfirm open-vm-tools
+        arch-chroot /mnt systemctl enable vmtoolsd
+        arch-chroot /mnt systemctl enable vmware-vmblock-fuse
+    fi
 fi
 
-
-# virtualbox
 if dmesg | grep -i "manufacturer: virtualbox" > /dev/null 2>&1; then
-    while [ true ]; do
-        read "?VirtualBox detected. Would you like to setup virtualbox-guest-utils (1=yes, 2=no)? "
-        if [ $REPLY = "1" ]; then
-            pacstrap /mnt --noconfirm virtualbox-guest-utils
-            break
-        elif [ $REPLY = "2" ]; then
-            break
-        else
-            echo "invalid input"
-        fi
-    done
+    if dialog --backtitle "VM Guest Tools" --yesno "VirtualBox detected. Would you like to setup virtualbox-guest-utils?" 10 60; then
+        pacstrap /mnt --noconfirm virtualbox-guest-utils
+    fi
 fi
 
 
 # fonts
-section "Optional fonts"
-while [ true ]; do
-    read "?Would you like to install a large collection of fonts (enter 1) or just use the preinstalled ones for now (enter 2)? "
-    if [ $REPLY = "1" ]; then
-        pacstrap /mnt --noconfirm ttf-liberation ttf-droid gnu-free-fonts ttf-roboto noto-fonts ttf-ubuntu-font-family ttf-cascadia-code ttf-anonymous-pro ttf-hack ttf-jetbrains-mono
-        break
-    elif [ $REPLY = "2" ]; then
-        break
-    else
-        echo "invalid input"
-    fi
-done
+if dialog --backtitle "Optional fonts" --title "Fonts" --yesno "Would you like to install a large collection of fonts?" 10 60; then
+    pacstrap /mnt --noconfirm ttf-liberation ttf-droid gnu-free-fonts ttf-roboto noto-fonts ttf-ubuntu-font-family ttf-cascadia-code ttf-anonymous-pro ttf-hack ttf-jetbrains-mono
+fi
 
 
 # microcode
@@ -511,17 +478,6 @@ done
 
 
 # finishing up
-section "END"
-echo -e "All done!\nYou should be good to reboot now\n"
-while [ true ]; do
-    read "?Reboot now (1=yes, 2=no)? "
-    if [ $REPLY = "1" ]; then
-        reboot
-        break
-    elif [ $REPLY = "2" ]; then
-        exit
-        break
-    else
-        echo "invalid input"
-    fi
-done
+if dialog --backtitle "END" --title "All finished\!" --yesno "Would you like to reboot now?" 10 60; then
+    reboot
+fi
