@@ -359,8 +359,6 @@ case $REPLY in
         pacstrap /mnt --noconfirm budgie-extras budgie-screensaver gnome-control-center budgie-desktop-view gedit gnome-terminal gdm
         arch-chroot /mnt systemctl enable gdm
         ;;
-    8)  # none
-        ;;
 esac
 
 
@@ -381,14 +379,13 @@ case $REPLY in
     4)
         pacstrap /mnt --noconfirm vivaldi
         ;;
-    5)
-        ;;
 esac
 
 
 # vm guest stuff
 if dmesg | grep -i "manufacturer: vmware" > /dev/null 2>&1; then
     if dialog --backtitle "VM Guest Tools" --yesno "VMware detected. Would you like to setup open-vm-tools?" 10 60; then
+        section "VM Guest Tools"
         pacstrap /mnt --noconfirm open-vm-tools
         arch-chroot /mnt systemctl enable vmtoolsd
         arch-chroot /mnt systemctl enable vmware-vmblock-fuse
@@ -397,43 +394,40 @@ fi
 
 if dmesg | grep -i "manufacturer: virtualbox" > /dev/null 2>&1; then
     if dialog --backtitle "VM Guest Tools" --yesno "VirtualBox detected. Would you like to setup virtualbox-guest-utils?" 10 60; then
+        section "VM Guest Tools"
         pacstrap /mnt --noconfirm virtualbox-guest-utils
     fi
 fi
 
 
 # fonts
-if dialog --backtitle "Optional fonts" --title "Fonts" --yesno "Would you like to install a large collection of fonts?" 10 60; then
+if dialog --backtitle "Fonts" --title "Optional fonts" --yesno "Would you like to install a large collection of fonts?" 10 60; then
+    section "Fonts"
     pacstrap /mnt --noconfirm ttf-liberation ttf-droid gnu-free-fonts ttf-roboto noto-fonts ttf-ubuntu-font-family ttf-cascadia-code ttf-anonymous-pro ttf-hack ttf-jetbrains-mono
 fi
 
 
 # microcode
+REPLY=$(dialog --stdout --nocancel --menu "Choose which CPU microcode patches to install" --backtitle "CPU microcode patches" 20 40 20 \
+1 "Intel" 2 "AMD" 3 "None")
 section "CPU microcode patches"
-while [ true ]; do
-    echo -e "CPU microcode patches:\n1) Intel\n2) AMD\n3) None"
-    read "?Choose which CPU microcode patches to install (enter a number): "
-    if [ $REPLY = "1" ]; then
+case $REPLY in
+    1)
         echo "Installing Intel microcode patches..."
         pacstrap /mnt --noconfirm intel-ucode
         echo "Reconfiguring GRUB to work correctly with these microcode patches..."
         arch-chroot /mnt grub-mkconfig -o /boot/grub/grub.cfg
-        break
-    elif [ $REPLY = "2" ]; then
+        ;;
+    2)
         echo "Installing AMD microcode patches..."
         pacstrap /mnt --noconfirm amd-ucode
         echo "Reconfiguring GRUB to work correctly with these microcode patches..."
         arch-chroot /mnt grub-mkconfig -o /boot/grub/grub.cfg
-        break
-    elif [ $REPLY = "3" ]; then
-        break
-    else
-        echo "invalid input"
-    fi
-done
+        ;;
+esac
 
 
 # finishing up
-if dialog --backtitle "END" --title "All finished\!" --yesno "Would you like to reboot now?" 10 60; then
+if dialog --backtitle "END" --title "All finished!" --yesno "Would you like to reboot now?" 10 60; then
     reboot
 fi
