@@ -211,12 +211,11 @@ done
 # choose linux kernel version to use
 section "Main system setup"
 while [ true ]; do
-    echo "Please select your preferred kernel:"
-    echo "1) Linux - most updated kernel version"
-    echo "2) Linux LTS - stable release, updated less often"
-    echo "3) Linux Hardened - very security-focused branch, fewer features"
-    echo "4) Linux Zen - optimised for performance"
-    read "?Your choice of kernel (enter a number): "
+    REPLY=$(dialog --stdout --nocancel --menu "Select your preferred kernel" --backtitle "Main system setup" 20 80 20 \
+    1 "Linux - most updated kernel version"
+    2 "Linux LTS - stable release, updated less often"
+    3 "Linux Hardened - very security-focused branch, fewer features"
+    4 "Linux Zen - optimised for performance")
     case $REPLY in
         1)
             kernel="linux"
@@ -352,9 +351,9 @@ arch-chroot /mnt chmod 755 /home/${username}  # set permissions back to somethin
 # desktop environment
 section "Desktop environment installation"
 while [ true ]; do
-    echo -e "1) KDE Plasma\n2) Xfce4\n3) LXQt\n4) GNOME\n5) Cinnamon\n6) MATE\n7) Budgie\n8) None / manual install"
-    echo "All installs will also include at least a display manager, filemanager and terminal emulator"
-    read "?Select one of the above options to install (enter a number): "
+    REPLY=$(dialog --stdout --nocancel --menu "Choose a desktop environment" --backtitle "Desktop environment installation" 20 40 20 \
+    1 "KDE Plasma" 2 "xfce4" 3 "LXQt" 4 "GNOME" 5 "Cinnamon" 6 "MATE" 7 "Budgie" 8 "None")
+    section "Desktop environment installation"
     case $REPLY in
         1)  # plasma
             pacstrap /mnt --noconfirm sddm plasma ark dolphin dolphin-plugins gwenview kate konsole partitionmanager
@@ -404,8 +403,9 @@ done
 # browser
 section "Web browser installation"
 while [ true ]; do
-    echo -e "1) Firefox\n2) Chromium\n3) qutebrowser\n4) Vivaldi\n5) None / manual install"
-    read "?Choose a browser to install (enter a number): "
+    REPLY=$(dialog --stdout --nocancel --menu "Choose a browser to install" --backtitle "Web browser installation" 20 40 20 \
+    1 "Firefox" 2 "Chromium" 3 "qutebrowser" 4 "Vivaldi" 5 "None")
+    section "Web browser installation"
     case $REPLY in
         1)
             pacstrap /mnt --noconfirm firefox
