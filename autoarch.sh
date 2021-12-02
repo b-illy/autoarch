@@ -188,9 +188,6 @@ else
             cfdisk /dev/$dev
             break
             ;;
-        *)
-            echo "invalid input"
-            ;;
     esac
     section "Partitioning"
     echo "Now that you have set up partitions, you will have to format and mount them (to /mnt/...)"
