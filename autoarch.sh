@@ -130,119 +130,99 @@ fi
 
 # select partition tool / method
 section "Partitioning"
-while [ true ]; do
-    read manualpart"?Would you like to partition manually (enter 1) or automatically (enter 2)? "
-    if [ $manualpart = "1" ]; then
-        # manual partitioning
-        while [ true ]; do
-            echo -e "\n1) parted (cli)\n2) fdisk (cli)\n3) cfdisk (ncurses gui)"
-            read "?Select a program to partition with (enter a number): "
-            case $REPLY in
-                1)
-                    parted /dev/$dev
-                    break
-                    ;;
-                2)
-                    fdisk /dev/$dev
-                    break
-                    ;;
-                3)
-                    cfdisk /dev/$dev
-                    break
-                    ;;
-                *)
-                    echo "invalid input"
-                    ;;
-            esac
-        done
-        echo "Now that you have set up partitions, you will have to format and mount them"
-        echo "Press alt + left/right arrow to switch between ttys"
-        read "?Press ENTER when you have finished to continue"
-        break
-    elif [ $manualpart = "2" ]; then
-        # automatic partitioning
-        if [ $efi = "false" ]; then
-            # mbr / bios
-            parted /dev/$dev mklabel msdos
+if dialog --backtitle "Partitioning" --yesno "Would you like this script to automatically partition according to the recommended layout?" 10 60; then
+    # automatic partitioning
+    if [ $efi = "false" ]; then
+        # mbr / bios
+        parted /dev/$dev mklabel msdos
 
-            if [ $swap -ne 0 ]; then  # with swap
-                parted /dev/$dev mkpart primary linux-swap 2MiB ${swap}GiB
-                parted /dev/$dev mkpart primary ext4 ${swap}GiB 100%
-                mkswap /dev/${devp}1
-                mkfs.ext4 /dev/${devp}2
-                mount /dev/${devp}2 /mnt
-                swapon /dev/${devp}1
-            else  # with no swap
-                parted /dev/$dev mkpart primary ext4 2MiB 100%
-                mkfs.ext4 /dev/${devp}1
-                mount /dev/${devp}1 /mnt
-            fi
-        else
-            # gpt / efi
-            parted /dev/$dev mklabel gpt
-            parted /dev/$dev mkpart boot fat32 2MiB 514MiB
-            parted /dev/$dev set 1 boot
-            parted /dev/$dev set 1 esp
-            mkfs.fat -F 32 /dev/${devp}1
-
-            if [ $swap -ne 0 ]; then  # with swap
-                parted /dev/$dev mkpart swap linux-swap 514MiB $((($swap*1024)+514))MiB
-                parted /dev/$dev mkpart rootfs ext4 $((($swap*1024)+514))MiB 100%
-                mkswap /dev/${devp}2
-                mkfs.ext4 /dev/${devp}3
-                mount /dev/${devp}3 /mnt
-                swapon /dev/${devp}2
-            else  # no swap
-                parted /dev/$dev mkpart rootfs ext4 514MiB 100%
-                mkfs.ext4 /dev/${devp}2
-                mount /dev/${devp}2 /mnt
-            fi
-            mkdir -p /mnt/boot
-            mount /dev/${devp}1 /mnt/boot
+        if [ $swap -ne 0 ]; then  # with swap
+            parted /dev/$dev mkpart primary linux-swap 2MiB ${swap}GiB
+            parted /dev/$dev mkpart primary ext4 ${swap}GiB 100%
+            mkswap /dev/${devp}1
+            mkfs.ext4 /dev/${devp}2
+            mount /dev/${devp}2 /mnt
+            swapon /dev/${devp}1
+        else  # with no swap
+            parted /dev/$dev mkpart primary ext4 2MiB 100%
+            mkfs.ext4 /dev/${devp}1
+            mount /dev/${devp}1 /mnt
         fi
-        break
     else
-        echo "invalid input"
-    fi
-done
+        # gpt / efi
+        parted /dev/$dev mklabel gpt
+        parted /dev/$dev mkpart boot fat32 2MiB 514MiB
+        parted /dev/$dev set 1 boot
+        parted /dev/$dev set 1 esp
+        mkfs.fat -F 32 /dev/${devp}1
 
-
-# choose linux kernel version to use
-section "Main system setup"
-while [ true ]; do
-    REPLY=$(dialog --stdout --nocancel --menu "Select your preferred kernel" --backtitle "Main system setup" 20 80 20 \
-    1 "Linux - most updated kernel version"
-    2 "Linux LTS - stable release, updated less often"
-    3 "Linux Hardened - very security-focused branch, fewer features"
-    4 "Linux Zen - optimised for performance")
+        if [ $swap -ne 0 ]; then  # with swap
+            parted /dev/$dev mkpart swap linux-swap 514MiB $((($swap*1024)+514))MiB
+            parted /dev/$dev mkpart rootfs ext4 $((($swap*1024)+514))MiB 100%
+            mkswap /dev/${devp}2
+            mkfs.ext4 /dev/${devp}3
+            mount /dev/${devp}3 /mnt
+            swapon /dev/${devp}2
+        else  # no swap
+            parted /dev/$dev mkpart rootfs ext4 514MiB 100%
+            mkfs.ext4 /dev/${devp}2
+            mount /dev/${devp}2 /mnt
+        fi
+        mkdir -p /mnt/boot
+        mount /dev/${devp}1 /mnt/boot
+else
+    # manual partitioning
+    REPLY=$(dialog --stdout --nocancel --menu "Choose a program to partition with" --backtitle "Partitioning" 20 40 20 \
+    1 "parted (cli)" 2 "fdisk (cli)" 3 "cfdisk (ncurses gui)")  
     case $REPLY in
         1)
-            kernel="linux"
+            parted /dev/$dev
             break
             ;;
         2)
-            kernel="linux-lts"
+            fdisk /dev/$dev
             break
             ;;
         3)
-            kernel="linux-hardened"
-            break
-            ;;
-        4)
-            kernel="linux-zen"
+            cfdisk /dev/$dev
             break
             ;;
         *)
             echo "invalid input"
             ;;
     esac
-done
+    section "Partitioning"
+    echo "Now that you have set up partitions, you will have to format and mount them (to /mnt/...)"
+    echo "Press alt + left arrow/right arrow to switch between ttys to do this"
+    read "?Press ENTER when you have finished to continue"
+fi
+
+
+# choose linux kernel version to use
+REPLY=$(dialog --stdout --nocancel --menu "Select your preferred kernel" --backtitle "Main system setup" 20 80 20 \
+1 "Linux - most updated kernel version"
+2 "Linux LTS - stable release, updated less often"
+3 "Linux Hardened - very security-focused branch, fewer features"
+4 "Linux Zen - optimised for performance")
+case $REPLY in
+    1)
+        kernel="linux"
+        ;;
+    2)
+        kernel="linux-lts"
+        ;;
+    3)
+        kernel="linux-hardened"
+        ;;
+    4)
+        kernel="linux-zen"
+        ;;
+esac
 
 
 # install core system + useful packages
+dialog --backtitle "Main system setup" --msgbox "Ready to install core packages and set up the system. This will likely take several minutes. Press OK to continue." 20 50
 section "Main system setup"
-echo "Ready to install core packages and set up the system (will likely take several minutes)"
-read "?Press ENTER when you are ready"
 
 # install packages
 pacstrap /mnt --noconfirm \
@@ -321,9 +301,7 @@ arch-chroot /mnt passwd
 
 
 # choose hostname
-section "Setup machine hostname"
-read "?Choose a hostname for your computer, such as '${username}-pc': "
-echo $REPLY > /mnt/etc/hostname
+echo $(dialog --stdout --nocancel --backtitle "Hostname setup" --inputbox "Choose a hostname for your computer (such as '${username}-pc')") > /mnt/etc/hostname
 echo "127.0.0.1 localhost" >> /mnt/etc/hosts
 echo "::1 localhost" >> /mnt/etc/hosts
 
@@ -348,86 +326,63 @@ arch-chroot /mnt chmod 755 /home/${username}  # set permissions back to somethin
 
 
 # desktop environment
-while [ true ]; do
-    REPLY=$(dialog --stdout --nocancel --menu "Choose a desktop environment" --backtitle "Desktop environment installation" 20 40 20 \
-    1 "KDE Plasma" 2 "xfce4" 3 "LXQt" 4 "GNOME" 5 "Cinnamon" 6 "MATE" 7 "Budgie" 8 "None")
-    section "Desktop environment installation"
-    case $REPLY in
-        1)  # plasma
-            pacstrap /mnt --noconfirm sddm plasma ark dolphin dolphin-plugins gwenview kate konsole partitionmanager
-            arch-chroot /mnt systemctl enable sddm
-            break
-            ;;
-        2)  # xfce
-            pacstrap /mnt --noconfirm xfce4 xfce4-goodies lightdm lightdm-gtk-greeter
-            arch-chroot /mnt systemctl enable lightdm
-            break
-            ;;
-        3)  # lxqt
-            pacstrap /mnt --noconfirm lxqt breeze-icons sddm xscreensaver xautolock xdg-utils
-            arch-chroot /mnt systemctl enable sddm
-            break
-            ;;
-        4)  # gnome
-            pacstrap /mnt --noconfirm gnome gnome-tweaks gnome-usage
-            arch-chroot /mnt systemctl enable gdm
-            break
-            ;;
-        5)  # cinnamon
-            pacstrap /mnt --noconfirm cinnamon xterm xed lightdm lightdm-gtk-greeter
-            arch-chroot /mnt systemctl enable lightdm
-            break
-            ;;
-        6)  # mate
-            pacstrap /mnt --noconfirm mate mate-extra lightdm lightdm-gtk-greeter blueman
-            arch-chroot /mnt systemctl enable lightdm
-            break
-            ;;
-        7)  # budgie
-            pacstrap /mnt --noconfirm budgie-extras budgie-screensaver gnome-control-center budgie-desktop-view gedit gnome-terminal gdm
-            arch-chroot /mnt systemctl enable gdm
-            break
-            ;;
-        8)  # none
-            break
-            ;;
-        *)
-            echo "invalid input"
-            ;;
-    esac
-done
+REPLY=$(dialog --stdout --nocancel --menu "Choose a desktop environment" --backtitle "Desktop environment installation" 20 40 20 \
+1 "KDE Plasma" 2 "xfce4" 3 "LXQt" 4 "GNOME" 5 "Cinnamon" 6 "MATE" 7 "Budgie" 8 "None")
+section "Desktop environment installation"
+case $REPLY in
+    1)  # plasma
+        pacstrap /mnt --noconfirm sddm plasma ark dolphin dolphin-plugins gwenview kate konsole partitionmanager
+        arch-chroot /mnt systemctl enable sddm
+        ;;
+    2)  # xfce
+        pacstrap /mnt --noconfirm xfce4 xfce4-goodies lightdm lightdm-gtk-greeter
+        arch-chroot /mnt systemctl enable lightdm
+        ;;
+    3)  # lxqt
+        pacstrap /mnt --noconfirm lxqt breeze-icons sddm xscreensaver xautolock xdg-utils
+        arch-chroot /mnt systemctl enable sddm
+        ;;
+    4)  # gnome
+        pacstrap /mnt --noconfirm gnome gnome-tweaks gnome-usage
+        arch-chroot /mnt systemctl enable gdm
+        ;;
+    5)  # cinnamon
+        pacstrap /mnt --noconfirm cinnamon xterm xed lightdm lightdm-gtk-greeter
+        arch-chroot /mnt systemctl enable lightdm
+        ;;
+    6)  # mate
+        pacstrap /mnt --noconfirm mate mate-extra lightdm lightdm-gtk-greeter blueman
+        arch-chroot /mnt systemctl enable lightdm
+        ;;
+    7)  # budgie
+        pacstrap /mnt --noconfirm budgie-extras budgie-screensaver gnome-control-center budgie-desktop-view gedit gnome-terminal gdm
+        arch-chroot /mnt systemctl enable gdm
+        ;;
+    8)  # none
+        ;;
+esac
 
 
 # browser
-while [ true ]; do
-    REPLY=$(dialog --stdout --nocancel --menu "Choose a browser to install" --backtitle "Web browser installation" 20 40 20 \
-    1 "Firefox" 2 "Chromium" 3 "qutebrowser" 4 "Vivaldi" 5 "None")
-    section "Web browser installation"
-    case $REPLY in
-        1)
-            pacstrap /mnt --noconfirm firefox
-            break
-            ;;
-        2)
-            pacstrap /mnt --noconfirm chromium
-            break
-            ;;
-        3)
-            pacstrap /mnt --noconfirm qutebrowser
-            break
-            ;;
-        4)
-            pacstrap /mnt --noconfirm vivaldi
-            break
-            ;;
-        5)
-            break
-            ;;
-        *)
-            echo "invalid input"
-            ;;
-    esac
-done
+REPLY=$(dialog --stdout --nocancel --menu "Choose a browser to install" --backtitle "Web browser installation" 20 40 20 \
+1 "Firefox" 2 "Chromium" 3 "qutebrowser" 4 "Vivaldi" 5 "None")
+section "Web browser installation"
+case $REPLY in
+    1)
+        pacstrap /mnt --noconfirm firefox
+        ;;
+    2)
+        pacstrap /mnt --noconfirm chromium
+        ;;
+    3)
+        pacstrap /mnt --noconfirm qutebrowser
+        ;;
+    4)
+        pacstrap /mnt --noconfirm vivaldi
+        ;;
+    5)
+        ;;
+esac
 
 
 # vm guest stuff
