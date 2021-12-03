@@ -198,9 +198,9 @@ fi
 
 # choose linux kernel version to use
 REPLY=$(dialog --stdout --nocancel --backtitle "Main system setup" --menu "Select your preferred kernel" 20 80 20 \
-1 "Linux - most updated kernel version"
-2 "Linux LTS - stable release, updated less often"
-3 "Linux Hardened - very security-focused branch, fewer features"
+1 "Linux - most updated kernel version" \
+2 "Linux LTS - stable release, updated less often" \
+3 "Linux Hardened - very security-focused branch, fewer features" \
 4 "Linux Zen - optimised for performance")
 case $REPLY in
     1)
