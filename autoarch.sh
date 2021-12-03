@@ -240,26 +240,24 @@ arch-chroot /mnt systemctl enable NetworkManager
 arch-chroot /mnt ln -sf ${timezone} /etc/localtime  # setup timezone
 arch-chroot /mnt hwclock --systohc
 
-
-# setup locale - locale.gen
+# locale setup
+locales=$(grep -E "\#[a-zA-Z_]+\.UTF-8 UTF-8" /etc/locale.gen | cut -d "." -f 1 | cut -d "#" -f 2)
+checklistinput=$(for line in $(echo -n $locales); do; echo -n " $line off"; done)
+menuinput=$(for line in $(echo -n $locales); do; echo -n " $line"; done)
+echo "--stdout --no-cancel --no-items --backtitle \"Locale setup\" --menu \"Select primary locale\" 20 40 20${menuinput}" > /tmp/.dialog.tmp
+primarylocale=$(dialog --file /tmp/.dialog.tmp)
+echo "--stdout --no-cancel --no-items --backtitle \"Locale setup\" --checklist \"Select any additional locales\" 20 40 20${checklistinput}" > /tmp/.dialog.tmp
+otherlocales=$(dialog --file /tmp/.dialog.tmp)
+rm /tmp/.dialog.tmp
+# setup locale.gen
 section "Locale setup"
-echo "Setting up locale..."
-echo "You will have to uncomment (removing the '#' at the start of the line) any desired locales."
-echo "It is recommend to only use the UTF8 variants and also to include en_US.UTF8"
-echo "Remember your main locale's name (everything before the first space) as you will need it later"
-read "?Press ENTER when you are ready"
-
-nano /mnt/etc/locale.gen
-arch-chroot /mnt locale-gen
-
-
-# setup locale - choose main locale    
-section "Locale setup"
-echo "LANG=en_US.UTF-8" > /mnt/etc/locale.conf
-echo "You will now have to replace en_US.UTF8 with your desired primary locale"
-read "?Press ENTER when you are ready"
-
-nano /mnt/etc/locale.conf
+mv /mnt/etc/locale.gen /mnt/etc/locale.gen.tmp
+echo -e "### this section was made automatically by autoarch\n### see below for the original file" > /mnt/etc/locale.gen
+for line in $(echo -n "${primarylocale} ${otherlocales}"); do; echo "${line}.UTF-8 UTF-8" >> /mnt/etc/locale.gen; done
+cat /mnt/etc/locale.gen.tmp >> /mnt/etc/locale.gen && rm /mnt/etc/locale.gen.tmp  # append original
+# generate/setup locales
+arch-chroot /mnt locale-gen  # generate locales
+echo "LANG=${primarylocale}.UTF-8" > /mnt/etc/locale.conf  # set primary locale
 
 
 # initramfs
