@@ -241,7 +241,7 @@ arch-chroot /mnt ln -sf ${timezone} /etc/localtime  # setup timezone
 arch-chroot /mnt hwclock --systohc
 
 # locale setup
-locales=$(grep -E "\#[a-zA-Z_]+\.UTF-8 UTF-8" /etc/locale.gen | cut -d "." -f 1 | cut -d "#" -f 2)
+locales=$(grep -E "\#[a-zA-Z_]+\.UTF-8 UTF-8" /mnt/etc/locale.gen | cut -d "." -f 1 | cut -d "#" -f 2)
 checklistinput=$(for line in $(echo -n $locales); do; echo -n " $line off"; done)
 menuinput=$(for line in $(echo -n $locales); do; echo -n " $line"; done)
 echo "--stdout --no-cancel --no-items --backtitle \"Locale setup\" --menu \"Select primary locale\" 20 40 20${menuinput}" > /tmp/.dialog.tmp
