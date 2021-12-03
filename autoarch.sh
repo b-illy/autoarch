@@ -11,11 +11,10 @@ section() {  # function to easily print section titles
     echo -e "${1}${reset_color}\n--------------------------------------------------------\n"
 }
 
-section "AutoArch - Arch Linux installation script"
-read "?Press ENTER to start"
+dialog --backtitle "AutoArch - Arch Linux installation script" --title "AutoArch" --msgbox "This script will install Arch on your system. Press ENTER to accept the risks and continue." 10 50
+
 
 section "Initial checks and setup"
-
 # check if booted in efi or bios mode
 if ls /sys/firmware/efi/efivars > /dev/null 2>&1; then
     efi=true
@@ -24,7 +23,6 @@ else
     efi=false
     echo -ne "\nRunning in BIOS"
 fi
-
 echo " mode, if this was unexpected, check motherboard settings to make sure you boot in the correct mode"
 
 # check if there is already an internet connection
@@ -64,6 +62,7 @@ section "Initial checks and setup"
 echo -e "Installing some packages to be used in the install process...\n"
 pacman -Sy --noconfirm dialog git
 
+
 # dialog menu help
 infostr="For certain parts of the install process, you will be asked to select \
 a file from a dialog menu which looks a little like this one. To enter a directory \
@@ -71,16 +70,18 @@ or select a file in one of these menus, press the space bar. Use the arrow keys 
 navigate between options and, when you are finished, press ENTER."
 dialog --title "Dialog Menu Help" --msgbox "${infostr}" 20 50
 
+
 # setup keyboard layout
-keymap=$(dialog --stdout --nocancel --title "Select a keyboard layout" --fselect /usr/share/kbd/keymaps/ 20 70)
-loadkeys "$keymap" > /dev/null 2>&1
+keymap=$(dialog --stdout --nocancel --backtitle "Keyboard layout setup" --title "Select a keyboard layout" --fselect /usr/share/kbd/keymaps/ 20 70)
+loadkeys "$keymap"
+
 
 # setup timezone
-timezone=$(dialog --stdout --nocancel --title "Select a timezone" --fselect /usr/share/zoneinfo/ 20 70)
+timezone=$(dialog --stdout --nocancel --backtitle "Timezone setup"--title "Select a timezone" --fselect /usr/share/zoneinfo/ 20 70)
+
 
 # partitioning
 section "Partitioning"
-
 # determine a decent swap amount
 physmem=0
 physmem=$(grep MemTotal /proc/meminfo | awk '{print $2}')
@@ -177,17 +178,11 @@ else
     1 "parted (cli)" 2 "fdisk (cli)" 3 "cfdisk (ncurses gui)")  
     case $REPLY in
         1)
-            parted /dev/$dev
-            break
-            ;;
+            parted /dev/$dev ;;
         2)
-            fdisk /dev/$dev
-            break
-            ;;
+            fdisk /dev/$dev ;;
         3)
-            cfdisk /dev/$dev
-            break
-            ;;
+            cfdisk /dev/$dev ;;
     esac
     section "Partitioning"
     echo "Now that you have set up partitions, you will have to format and mount them (to /mnt/...)"
@@ -204,24 +199,19 @@ REPLY=$(dialog --stdout --nocancel --backtitle "Main system setup" --menu "Selec
 4 "Linux Zen - optimised for performance")
 case $REPLY in
     1)
-        kernel="linux"
-        ;;
+        kernel="linux" ;;
     2)
-        kernel="linux-lts"
-        ;;
+        kernel="linux-lts" ;;
     3)
-        kernel="linux-hardened"
-        ;;
+        kernel="linux-hardened" ;;
     4)
-        kernel="linux-zen"
-        ;;
+        kernel="linux-zen" ;;
 esac
 
 
 # install core system + useful packages
 dialog --backtitle "Main system setup" --msgbox "Ready to install core packages and set up the system. This will likely take several minutes. Press OK to continue." 20 50
 section "Main system setup"
-
 # install packages
 pacstrap /mnt --noconfirm \
     base $kernel linux-firmware xorg \
@@ -231,7 +221,6 @@ pacstrap /mnt --noconfirm \
     btrfs-progs dosfstools e2fsprogs ntfs-3g xfsprogs \
     nano vim \
     man-db man-pages texinfo
-
 # other useful setup stuff
 section "Main system setup"
 echo "KEYMAP=${keymap}" > /mnt/etc/vconsole.conf  # save keymap across reboots on new system
@@ -239,6 +228,7 @@ genfstab -U /mnt >> /mnt/etc/fstab  # generate fs table for partitions to actual
 arch-chroot /mnt systemctl enable NetworkManager
 arch-chroot /mnt ln -sf ${timezone} /etc/localtime  # setup timezone
 arch-chroot /mnt hwclock --systohc
+
 
 # locale setup
 locales=$(grep -E "\#[a-zA-Z_]+\.UTF-8 UTF-8" /mnt/etc/locale.gen | cut -d "." -f 1 | cut -d "#" -f 2)
@@ -249,12 +239,14 @@ primarylocale=$(dialog --file /tmp/.dialog.tmp)
 echo "--stdout --no-cancel --no-items --backtitle \"Locale setup\" --checklist \"Select any additional locales\" 20 40 20${checklistinput}" > /tmp/.dialog.tmp
 otherlocales=$(dialog --file /tmp/.dialog.tmp)
 rm /tmp/.dialog.tmp
+
 # setup locale.gen
 section "Locale setup"
 mv /mnt/etc/locale.gen /mnt/etc/locale.gen.tmp
 echo -e "### this section was made automatically by autoarch\n### see below for the original file" > /mnt/etc/locale.gen
 for line in $(echo -n "${primarylocale} ${otherlocales}"); do; echo "${line}.UTF-8 UTF-8" >> /mnt/etc/locale.gen; done
 cat /mnt/etc/locale.gen.tmp >> /mnt/etc/locale.gen && rm /mnt/etc/locale.gen.tmp  # append original
+
 # generate/setup locales
 arch-chroot /mnt locale-gen  # generate locales
 echo "LANG=${primarylocale}.UTF-8" > /mnt/etc/locale.conf  # set primary locale
@@ -317,14 +309,11 @@ REPLY=$(dialog --stdout --nocancel --backtitle "AUR helper installation" --menu 
 section "AUR helper installation"
 case $REPLY in
     1)
-        pkg="yay-bin"
-        ;;
+        pkg="yay-bin" ;;
     2)
-        pkg="paru-bin"
-        ;;
+        pkg="paru-bin" ;;
     3)
-        pkg="aura-bin"
-        ;;
+        pkg="aura-bin" ;;
 esac
 
 if [[ $REPLY -ne 4 ]]; then
@@ -345,32 +334,25 @@ section "Desktop environment installation"
 case $REPLY in
     1)  # plasma
         pacstrap /mnt --noconfirm sddm plasma ark dolphin dolphin-plugins gwenview kate konsole partitionmanager
-        arch-chroot /mnt systemctl enable sddm
-        ;;
+        arch-chroot /mnt systemctl enable sddm ;;
     2)  # xfce
         pacstrap /mnt --noconfirm xfce4 xfce4-goodies lightdm lightdm-gtk-greeter
-        arch-chroot /mnt systemctl enable lightdm
-        ;;
+        arch-chroot /mnt systemctl enable lightdm ;;
     3)  # lxqt
         pacstrap /mnt --noconfirm lxqt breeze-icons sddm xscreensaver xautolock xdg-utils
-        arch-chroot /mnt systemctl enable sddm
-        ;;
+        arch-chroot /mnt systemctl enable sddm ;;
     4)  # gnome
         pacstrap /mnt --noconfirm gnome gnome-tweaks gnome-usage
-        arch-chroot /mnt systemctl enable gdm
-        ;;
+        arch-chroot /mnt systemctl enable gdm ;;
     5)  # cinnamon
         pacstrap /mnt --noconfirm cinnamon xterm xed lightdm lightdm-gtk-greeter
-        arch-chroot /mnt systemctl enable lightdm
-        ;;
+        arch-chroot /mnt systemctl enable lightdm ;;
     6)  # mate
         pacstrap /mnt --noconfirm mate mate-extra lightdm lightdm-gtk-greeter blueman
-        arch-chroot /mnt systemctl enable lightdm
-        ;;
+        arch-chroot /mnt systemctl enable lightdm ;;
     7)  # budgie
         pacstrap /mnt --noconfirm budgie-extras budgie-screensaver gnome-control-center budgie-desktop-view gedit gnome-terminal gdm
-        arch-chroot /mnt systemctl enable gdm
-        ;;
+        arch-chroot /mnt systemctl enable gdm ;;
 esac
 
 
@@ -380,17 +362,13 @@ REPLY=$(dialog --stdout --nocancel --backtitle "Web browser installation" --menu
 section "Web browser installation"
 case $REPLY in
     1)
-        pacstrap /mnt --noconfirm firefox
-        ;;
+        pacstrap /mnt --noconfirm firefox ;;
     2)
-        pacstrap /mnt --noconfirm chromium
-        ;;
+        pacstrap /mnt --noconfirm chromium ;;
     3)
-        pacstrap /mnt --noconfirm qutebrowser
-        ;;
+        pacstrap /mnt --noconfirm qutebrowser ;;
     4)
-        pacstrap /mnt --noconfirm vivaldi
-        ;;
+        pacstrap /mnt --noconfirm vivaldi ;;
 esac
 
 
