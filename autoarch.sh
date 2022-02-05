@@ -77,7 +77,7 @@ loadkeys "$keymap"
 
 
 # setup timezone
-timezone=$(dialog --stdout --nocancel --backtitle "Timezone setup"--title "Select a timezone" --fselect /usr/share/zoneinfo/ 20 70)
+timezone=$(dialog --stdout --nocancel --backtitle "Timezone setup" --title "Select a timezone" --fselect /usr/share/zoneinfo/ 20 70)
 
 
 # partitioning
