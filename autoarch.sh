@@ -60,7 +60,10 @@ timedatectl set-ntp true
 # install git and dialog for the install process
 section "Initial checks and setup"
 echo -e "Installing some packages to be used in the install process...\n"
-pacman -Sy --noconfirm dialog git
+pacman -Sy --noconfirm archlinux-keyring
+pacman-key --init
+pacman-key --populate archlinux
+pacman -S --noconfirm dialog git
 
 
 # dialog menu help
