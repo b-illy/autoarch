@@ -125,7 +125,7 @@ done
 # select device to partition
 section "Partitioning"
 echo "List of connected storage devices:"
-lsblk -S
+lsblk
 read dev"?Choose a disk from this list to partition (e.g. 'sda' or 'nvme0n1'): /dev/"
 devp=$dev # ensure partitions on nvme drives (nvme0n1 -> nvme0n1p1 vs sda -> sda1) are referred to correctly
 if [[ $dev == nvme* ]]; then
