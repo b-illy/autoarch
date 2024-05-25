@@ -11,10 +11,10 @@ section() {  # function to easily print section titles
     echo -e "${1}${reset_color}\n--------------------------------------------------------\n"
 }
 
-dialog --backtitle "AutoArch - Arch Linux installation script" --title "AutoArch" --msgbox "This script will install Arch on your system. Press ENTER to accept the risks and continue." 10 50
-
-
 section "Initial checks and setup"
+
+echo "AutoArch - archlinux installation script (https://github.com/b-illy/autoarch)"
+
 # check if booted in efi or bios mode
 if ls /sys/firmware/efi/efivars > /dev/null 2>&1; then
     efi=true
@@ -24,6 +24,15 @@ else
     echo -ne "\nRunning in BIOS"
 fi
 echo " mode, if this was unexpected, check motherboard settings to make sure you boot in the correct mode"
+
+
+read -q "?This script will attempt to install archlinux on your system which is potentially dangerous. Accept the risks and continue? [y/N] "
+if [ $REPLY != "y" ]; then
+    echo "Exiting..."
+    exit
+fi
+
+echo -ne "\n"
 
 # check if there is already an internet connection
 section "Initial checks and setup"
@@ -40,7 +49,11 @@ else
             else
                 echo "Ethernet device detected but no connection."
             fi
-            read "?Press ENTER to continue anyway or Ctrl-C to exit"
+            read -q "?This will almost certainly cause issues - attempt to continue anyway? [y/N] "
+            if [ $REPLY != "y" ]; then
+                echo "Exiting... (re-run after troubleshooting internet connection)"
+                exit
+            fi
             break
         elif [ $REPLY = "2" ]; then
             echo -e "Set up a connection using iwctl\nRough instructions: (also type 'help' and/or consult Arch wiki)"
